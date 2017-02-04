@@ -9,6 +9,21 @@ namespace network {
 
 class ByteStream : public boost::noncopyable
 {
+public:
+    ByteStream() {}
+
+    inline bool empty() const { return pieces_.empty(); }
+    size_t length() const;
+
+    size_t read(void* buf, size_t count);
+    size_t peek(void* buf, size_t count);
+
+    inline void write(const SharedBuffer& buf, size_t data_size);
+    inline void clear()
+    {
+        pieces_.clear();
+    }
+
 private:
     struct Piece
     {
@@ -24,30 +39,14 @@ private:
         size_t cursor;
         size_t size;
     };
-
-public:
-    ByteStream() {}
-
-    inline bool empty() const { return pieces_.empty(); }
-
-    size_t length() const;
-
-    size_t read(void* buf, size_t count);
-    size_t peek(void* buf, size_t count);
-
-    inline void write(const SharedBuffer& buf, size_t data_size)
-    {
-        pieces_.push_back(Piece(buf, data_size));
-    }
-
-    inline void clear()
-    {
-        pieces_.clear();
-    }
-
-private:
+	
     std::list<Piece> pieces_;
 };
+
+inline void ByteStream::write(const SharedBuffer& buf, size_t data_size)
+{
+	pieces_.push_back(Piece(buf, data_size));
+}
 
 } // namespace network
 } // namespace mtl
