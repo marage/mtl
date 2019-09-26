@@ -5,13 +5,13 @@
 
 namespace mtl {
 
-class _MTL_EXPORT TaskGroup : public Task
+class MTL_EXPORT TaskGroup : public Task
 {
 public:
     explicit TaskGroup(int type = 0, bool parallel = false, int timeout = 10000);
     virtual ~TaskGroup();
 
-    inline int count() const { return static_cast<int>(tasks_.size()); }
+    int count() const { return static_cast<int>(tasks_.size()); }
     task_ptr find(int type) const;
     void add(const task_ptr& t);
     void remove(const task_ptr& t);

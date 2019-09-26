@@ -15,7 +15,7 @@ class InRequest;
 
 namespace p2p {
 
-class _MTL_EXPORT Client : public boost::enable_shared_from_this<Client>, private boost::noncopyable
+class MTL_EXPORT Client : public boost::enable_shared_from_this<Client>, private boost::noncopyable
 {
 public:
     /// signals
@@ -97,15 +97,15 @@ protected:
         int32_t failure_times;
         int32_t cost_per_k;
 
-        inline double failureRate() const
+        double failureRate() const
         {
-            return (failure_times > 5 ? (double)failure_times/(double)sent_count : 0);
+            return (failure_times > 5 ? double(failure_times)/double(sent_count) : 0);
         }
 
-        inline int32_t cost(uint16_t size) const
+        int32_t cost(uint16_t size) const
         {
             return (size < 1024 ? cost_per_k
-                                : int32_t(cost_per_k*((double)size/1024.0)));
+                                : int32_t(cost_per_k*(double(size)/1024.0)));
         }
 
         friend bool operator==(const Neighbor& a, const Neighbor& b)
@@ -144,7 +144,7 @@ inline std::string Client::toString(const boost::asio::ip::udp::endpoint& endpoi
     std::stringstream ss;
     ss << endpoint.port();
     s.append(ss.str());
-    return std::move(s);
+    return s;
 }
 
 const char* Client::toBytes(const boost::asio::ip::udp::endpoint& endpoint, char bytes[])

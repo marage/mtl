@@ -171,17 +171,17 @@ inline uint64_t HostToNetwork64(uint64_t n)
     return IsHostBigEndian() ? n : GetBE64(&n);
 }
 
-inline boost::int16_t NetworkToHost16(uint16_t n)
+inline boost::uint16_t NetworkToHost16(uint16_t n)
 {
     return ntohs(n);
 }
 
-inline int32_t NetworkToHost32(uint32_t n)
+inline uint32_t NetworkToHost32(uint32_t n)
 {
     return ntohl(n);
 }
 
-inline int64_t NetworkToHost64(uint64_t n)
+inline uint64_t NetworkToHost64(uint64_t n)
 {
     // If the host is little endian, GetBE64 converts n to little endian.
     return IsHostBigEndian() ? n : GetBE64(&n);

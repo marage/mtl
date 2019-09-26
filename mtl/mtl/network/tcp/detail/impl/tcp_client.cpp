@@ -1,12 +1,13 @@
 #include "mtl/network/tcp/client.hpp"
 #include <boost/asio.hpp>
+#include "mtl/network/in_request.hpp"
 
 namespace mtl {
 namespace network {
 namespace tcp {
 
-Client::Client(boost::asio::io_service& io_service)
-    : status_(UNCONNECTED), io_service_(io_service)
+Client::Client(boost::asio::io_context& io_context)
+    : status_(UNCONNECTED), io_context_(io_context)
 {
 }
 
@@ -17,8 +18,9 @@ Client::~Client()
 boost::asio::ip::tcp::endpoint Client::localEndpoint() const
 {
     boost::asio::ip::tcp::endpoint endpoint;
-    if (isConnected())
+    if (isConnected()) {
         endpoint = connection_->localEndpoint();
+    }
     return endpoint;
 }
 
@@ -49,15 +51,16 @@ bool Client::open(const std::string& server, const std::string& port)
 
     // Start an asynchronous resolve to translate the server and service names
     // into a list of endpoints.
-    boost::asio::ip::tcp::resolver resolver(io_service_);
+    boost::asio::ip::tcp::resolver resolver(io_context_);
     boost::asio::ip::tcp::resolver::query query(server, port);
     boost::system::error_code ec;
     boost::asio::ip::tcp::resolver::iterator it = resolver.resolve(query, ec);
-    if (it == boost::asio::ip::tcp::resolver::iterator())
+    if (it == boost::asio::ip::tcp::resolver::iterator()) {
         return false;
+    }
 
     // New a connection
-    connection_.reset(new Connection(io_service_));
+    connection_.reset(new Connection(io_context_));
     connection_->packet_arrival_signal.connect(packet_arrival_signal);
     connection_->close_signal.connect(close_signal);
 

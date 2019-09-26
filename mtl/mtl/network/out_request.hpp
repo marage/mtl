@@ -5,7 +5,7 @@
 namespace mtl {
 namespace network {
 
-class _MTL_EXPORT OutRequest : public OutStream
+class MTL_EXPORT OutRequest : public OutStream
 {
 public:
     explicit OutRequest(uint32_t cmd = 0, uint32_t seq = 0, uint16_t begin = 0);

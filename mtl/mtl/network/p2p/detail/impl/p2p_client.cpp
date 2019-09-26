@@ -115,7 +115,7 @@ void Client::broadcast(OutRequest& oreq, int32_t timeout)
         temp_tasks_mutex_.unlock();
     }
     // async process tasks
-    dgram_->getIOService().post(boost::bind(&Client::activateTempTasks, this));
+    boost::asio::post(dgram_->context(), boost::bind(&Client::activateTempTasks, this));
 }
 
 void Client::sendTo(OutRequest& oreq, const boost::asio::ip::udp::endpoint& to, uint32_t timeout)

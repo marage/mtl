@@ -3,14 +3,14 @@
 #include <boost/cstdint.hpp>
 #include <ctime>
 
-#ifdef _MSC_VER
-#ifdef MTL_EXPORT
-    #define _MTL_EXPORT __declspec(dllexport)
+#ifdef MTL_SHARED_LIBRARY
+#ifdef MTL_LIBRARY
+    #define MTL_EXPORT __declspec(dllexport)
 #else
-    #define _MTL_EXPORT __declspec(dllimport)
+    #define MTL_EXPORT __declspec(dllimport)
 #endif
 #else
-#define _MTL_EXPORT
+#define MTL_EXPORT
 #endif
 
 #ifdef _MSC_VER

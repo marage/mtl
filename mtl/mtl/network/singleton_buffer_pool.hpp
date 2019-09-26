@@ -12,7 +12,7 @@
 namespace mtl {
 namespace network {
 
-class _MTL_EXPORT SingletonBufferPool
+class MTL_EXPORT SingletonBufferPool
     : public Singleton<SingletonBufferPool>, private boost::noncopyable
 {
 public:

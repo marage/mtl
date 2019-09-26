@@ -8,20 +8,20 @@
 namespace mtl {
 namespace network {
 
-class _MTL_EXPORT OutStream
+class MTL_EXPORT OutStream
 {
 public:
     explicit OutStream(uint16_t begin = 0);
     OutStream(const SharedBuffer& buffer, uint16_t size,
               uint16_t begin);
 
-    inline const SharedBuffer& buffer() const { return buffer_; }
-    inline uint16_t size() const
+    const SharedBuffer& buffer() const { return buffer_; }
+    uint16_t size() const
     {
         return static_cast<uint16_t>((cursor_ - buffer_.get()));
     }
-    inline uint16_t begin() const { return begin_; }
-    inline uint16_t left() const { return (size_ - size()); }
+    uint16_t begin() const { return begin_; }
+    uint16_t left() const { return (size_ - size()); }
 
     uint16_t skip(uint16_t offset, int origin);
     void resize(uint16_t sz);

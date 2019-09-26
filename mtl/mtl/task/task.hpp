@@ -6,7 +6,7 @@
 
 namespace mtl {
 
-class _MTL_EXPORT Task
+class MTL_EXPORT Task
 {
 public:
     enum Status

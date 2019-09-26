@@ -18,9 +18,9 @@ namespace mtl {
 namespace network {
 namespace udp {
 
-Dgram::Dgram(asio::io_service& io_service)
-    : socket_(io_service), timer_(io_service), open_(false), closing_(false)
-    , alive_(false), timer_frequency_(5000)
+Dgram::Dgram(boost::asio::io_context& io_context)
+    : io_context_(io_context), socket_(io_context), timer_(io_context)
+    , open_(false), closing_(false), alive_(false), timer_frequency_(5000)
 {
 }
 
@@ -30,8 +30,9 @@ Dgram::~Dgram()
 
 bool Dgram::open(const boost::asio::ip::udp::endpoint& endpoint, uint32_t frequency)
 {
-    if (open_)
+    if (open_) {
         return false;
+    }
     boost::system::error_code ec;
     socket_.open(asio::ip::udp::v4(), ec);
     if (ec) {
@@ -67,17 +68,12 @@ void Dgram::close()
         keep_alive_signal.disconnect_all_slots();
         timer_tick_signal.disconnect_all_slots();
         // post close
-        socket_.get_io_service().post(boost::bind(&Dgram::handleClose, shared_from_this()));
+        boost::asio::post(io_context_, boost::bind(&Dgram::handleClose, shared_from_this()));
         int try_count = 0;
         while (open_ && ++try_count <= 100) {
             boost::this_thread::sleep(posix_time::milliseconds(1));
         }
     }
-}
-
-asio::io_service& Dgram::getIOService()
-{
-    return socket_.get_io_service();
 }
 
 boost::asio::ip::udp::endpoint Dgram::localEndpoint() const
@@ -127,7 +123,7 @@ bool Dgram::sendTo(const OutRequest& oreq, const boost::asio::ip::udp::endpoint&
         small_packet_queue_.push_back(SmallPacket{ d_oreq, to, end_time });
         mutex_.unlock();
     }
-    socket_.get_io_service().post(boost::bind(&Dgram::sendNextPacket, this));
+    boost::asio::post(io_context_, boost::bind(&Dgram::sendNextPacket, this));
     return false;
 }
 
@@ -180,7 +176,7 @@ void Dgram::clearPackets(const boost::asio::ip::udp::endpoint& to)
     }
     mutex_.unlock();
     if (exists) {
-        socket_.get_io_service().post(boost::bind(&Dgram::sendNextPacket, this));
+        boost::asio::post(io_context_, boost::bind(&Dgram::sendNextPacket, this));
     }
 }
 
@@ -208,7 +204,7 @@ void Dgram::clearPackets()
         group_send_queue_.pop_front();
     }
     mutex_.unlock();
-    socket_.get_io_service().post(boost::bind(&Dgram::sendNextPacket, this));
+    boost::asio::post(io_context_, boost::bind(&Dgram::sendNextPacket, this));
 }
 
 void Dgram::sendNextPacket()
@@ -345,7 +341,7 @@ void Dgram::handleReceiveFinished(size_t bytes_recvd)
         switch (type) {
         case PT_RUDP:
         {
-            InRequest ir(buffer_, (uint16_t)bytes_recvd, UDP_HEADER_LENGTH);
+            InRequest ir(buffer_, uint16_t(bytes_recvd), UDP_HEADER_LENGTH);
             ir.setFrom(sender_endpoint_);
             arrival_signal(ir, sender_endpoint_, 10);
         }
@@ -358,7 +354,7 @@ void Dgram::handleReceiveFinished(size_t bytes_recvd)
             break;
         case PT_UDP:
         {
-            InRequest ir(buffer_, (uint16_t)bytes_recvd, UDP_HEADER_LENGTH);
+            InRequest ir(buffer_, uint16_t(bytes_recvd), UDP_HEADER_LENGTH);
             ir.setFrom(sender_endpoint_);
             arrival_signal(ir, sender_endpoint_, 0);
         }
@@ -412,7 +408,7 @@ void Dgram::handleReceiveGroupPacket(InRequest& ireq, const boost::asio::ip::udp
                     if (grt->isCompleted()) {
                         InRequest ireq(grt->data(), grt->size());
                         ireq.setFrom(from);
-                        arrival_signal(ireq, from, (int32_t)grt->cost());
+                        arrival_signal(ireq, from, int32_t(grt->cost()));
                     }
                     active_group_recv_tasks_.erase(it);
                     break;
@@ -575,7 +571,7 @@ void Dgram::handleClose()
 
 GroupRecvTask* Dgram::getRecvTask(uint16_t id, const boost::asio::ip::udp::endpoint& from)
 {
-    GroupRecvTask* t = 0;
+    GroupRecvTask* t = nullptr;
     for (auto it = active_group_recv_tasks_.begin(), end = active_group_recv_tasks_.end();
          it != end; ++it) {
         if ((*it)->compareId(id, from)) {
@@ -610,7 +606,7 @@ bool Dgram::destIsRecving(const boost::asio::ip::udp::endpoint& dest)
 
 uint32_t Dgram::nextSequence()
 {
-    static uint32_t seq = (uint32_t)time(0);
+    static uint32_t seq = uint32_t(time(nullptr));
     ++seq;
     seq = seq % 0xFFFFFFFF;
     return seq;

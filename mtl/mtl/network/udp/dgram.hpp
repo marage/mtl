@@ -25,7 +25,7 @@ class GroupRecvTask;
 class GroupSendTask;
 
 /// Not support thread
-class _MTL_EXPORT Dgram
+class MTL_EXPORT Dgram
     : public boost::enable_shared_from_this<Dgram>, private boost::noncopyable
 {
 public:
@@ -37,13 +37,13 @@ public:
     boost::signals2::signal<void(InRequest&, const boost::asio::ip::udp::endpoint&, bool*)> group_head_arrival_signal;
     boost::signals2::signal<void()> timer_tick_signal;
 
-    explicit Dgram(boost::asio::io_service& io_service);
+    explicit Dgram(boost::asio::io_context& io_context);
     ~Dgram();
 
     bool open(const boost::asio::ip::udp::endpoint& endpoint, uint32_t frequency = 1000);
     void close();
 
-    boost::asio::io_service& getIOService();
+    boost::asio::io_context& context() { return io_context_; }
     boost::asio::ip::udp::endpoint localEndpoint() const;
     bool isBusy();
     bool sendTo(const OutRequest& oreq, const boost::asio::ip::udp::endpoint& to, uint32_t timeout = 5000);
@@ -92,6 +92,7 @@ private:
         boost::posix_time::ptime next_time;
     };
 
+    boost::asio::io_context& io_context_;
     boost::asio::ip::udp::socket socket_;
     boost::asio::deadline_timer timer_;
 

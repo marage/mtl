@@ -9,7 +9,7 @@ namespace mtl {
 namespace network {
 namespace p2p {
 
-class _MTL_EXPORT Server : public Client
+class MTL_EXPORT Server : public Client
 {
 public:
     Server(const udp::dgram_ptr& dgram, const std::string& token);

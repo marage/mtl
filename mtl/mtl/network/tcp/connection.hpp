@@ -29,7 +29,7 @@ class OutRequest;
 namespace tcp {
 
 /// Represents a single connection from a client.
-class _MTL_EXPORT Connection
+class MTL_EXPORT Connection
     : public boost::enable_shared_from_this<Connection>, private boost::noncopyable
 {
 public:
@@ -38,21 +38,21 @@ public:
     boost::signals2::signal<void (const boost::system::error_code&)> close_signal;
 
     /// Construct a connection with the given io_service.
-    explicit Connection(boost::asio::io_service& io_service);
+    explicit Connection(boost::asio::io_context& io_context);
 
     /// Get the socket address
     boost::asio::ip::tcp::endpoint localEndpoint() const;
     boost::asio::ip::tcp::endpoint remoteEndpoint() const;
 
     /// Get the socket associated with the connection.
-    inline boost::asio::ip::tcp::socket& socket() { return socket_; }
+    boost::asio::ip::tcp::socket& socket() { return socket_; }
 
     /// Return whether the connection is busy.
-    inline bool isBusy() const { return (send_count_ > (sent_count_ + 5)); }
-    inline int pendingCount() const { return (send_count_ - sent_count_); }
+    bool isBusy() const { return (send_count_ > (sent_count_ + 5)); }
+    int pendingCount() const { return (send_count_ - sent_count_); }
 
     /// Return the last request time
-    inline std::chrono::system_clock::time_point lastRequestTime() const
+    std::chrono::system_clock::time_point lastRequestTime() const
     {
         return last_request_time_;
     }

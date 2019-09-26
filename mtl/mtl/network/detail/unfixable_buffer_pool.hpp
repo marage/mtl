@@ -13,7 +13,7 @@ public:
     UnfixableBufferPool();
     ~UnfixableBufferPool();
 
-    inline bool isFrom(void* p) const
+    bool isFrom(void* p) const
     {
         return (valid_ptr_list_.find(p) != valid_ptr_list_.end());
     }

@@ -10,13 +10,14 @@
 
 #include "mtl/network/tcp/server.hpp"
 #include <boost/bind.hpp>
+#include <boost/asio/placeholders.hpp>
 
 namespace mtl {
 namespace network {
 namespace tcp {
 
-Server::Server(IOServicePool& isp)
-    : io_service_pool_(isp), acceptor_(io_service_pool_.getIOService())
+Server::Server(ContextPool& isp)
+    : context_pool_(isp), acceptor_(context_pool_.getContext())
 {
 }
 
@@ -53,7 +54,7 @@ boost::asio::ip::tcp::endpoint Server::localEndpoint() const
 void Server::startAccept()
 {
     new_connection_.reset(new Connection(
-                              io_service_pool_.getIOService()));
+                              context_pool_.getContext()));
     acceptor_.async_accept(new_connection_->socket(),
                            boost::bind(&Server::handleAccept, this,
                                        boost::asio::placeholders::error));

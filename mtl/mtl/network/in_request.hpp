@@ -7,23 +7,21 @@
 namespace mtl {
 namespace network {
 
-class _MTL_EXPORT InRequest : public InStream
+class MTL_EXPORT InRequest : public InStream
 {
 public:
     InRequest();
     InRequest(const SharedBuffer& buffer, uint16_t size,
               uint16_t begin = 0);
 
-    inline const boost::asio::ip::udp::endpoint& from() const { return from_; }
-
-    inline bool isHandled() const { return handled_; }
-
-    inline void setFrom(const boost::asio::ip::udp::endpoint& from)
+    const boost::asio::ip::udp::endpoint& from() const { return from_; }
+    void setFrom(const boost::asio::ip::udp::endpoint& from)
     {
         from_ = from;
     }
 
-    inline void setHandled(bool handled)
+    bool isHandled() const { return handled_; }
+    void setHandled(bool handled)
     {
         handled_ = handled;
     }

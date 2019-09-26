@@ -20,8 +20,8 @@ namespace mtl {
 namespace network {
 namespace tcp {
 
-Connection::Connection(boost::asio::io_service& io_service)
-    : socket_(io_service), send_count_(0), sent_count_(0)
+Connection::Connection(boost::asio::io_context& io_context)
+    : socket_(io_context), send_count_(0), sent_count_(0)
 {
     buffer_ = SingletonBufferPool::getSingleton().malloc(1024);
     last_request_time_ = std::chrono::system_clock::now();

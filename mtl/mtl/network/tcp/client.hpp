@@ -7,7 +7,7 @@ namespace mtl {
 namespace network {
 namespace tcp {
 
-class _MTL_EXPORT Client
+class MTL_EXPORT Client
     : public boost::enable_shared_from_this<Client>, private boost::noncopyable
 {
 public:
@@ -23,7 +23,7 @@ public:
     boost::signals2::signal<void(InRequest&)> packet_arrival_signal;
     boost::signals2::signal<void(const boost::system::error_code&)> close_signal;
 
-    explicit Client(boost::asio::io_service& io_service);
+    explicit Client(boost::asio::io_context& io_context);
     ~Client();
 
     boost::asio::ip::tcp::endpoint localEndpoint() const;
@@ -40,7 +40,7 @@ private:
     void handleConnect(const boost::system::error_code& ec);
 
     Status status_;
-    boost::asio::io_service& io_service_;
+    boost::asio::io_context& io_context_;
     connection_ptr connection_;
 };
 

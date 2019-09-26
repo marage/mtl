@@ -20,7 +20,7 @@ const int MAX_CLIENT_COUNT = 10000;
 const int MAX_EDGE_WEIGHT = 10000;
 
 Server::Server(const udp::dgram_ptr& dgram, const std::string& token)
-    : Client(dgram), token_(token), check_alive_timer_(dgram->getIOService())
+    : Client(dgram), token_(token), check_alive_timer_(dgram->context())
 {
     seq_range_.min = 1;
     seq_range_.max = MAX_SEQUENCE_COUNT;
@@ -95,7 +95,7 @@ void Server::broadcast(OutRequest& oreq, int32_t timeout)
         temp_tasks_mutex_.unlock();
     }
     // async process tasks
-    dgram_->getIOService().post(boost::bind(&Server::activateTempTasks, this));
+    boost::asio::post(dgram_->context(), boost::bind(&Server::activateTempTasks, this));
 }
 
 void Server::handlePacketArrival(InRequest& ireq, const boost::asio::ip::udp::endpoint& from, 
@@ -522,7 +522,7 @@ bool Server::isValidNeighbor(const GraphVertex* v)
 void Server::bfsMembers(const boost::asio::ip::udp::endpoint& start,
                         std::list<boost::asio::ip::udp::endpoint>& targets)
 {
-    GraphVertex* v = 0;
+    GraphVertex* v = nullptr;
     if (start.port() > 0) {
         v = graph_.vertex(toString(start));
     } else {
