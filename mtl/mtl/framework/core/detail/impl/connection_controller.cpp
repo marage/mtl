@@ -6,7 +6,7 @@ namespace mtl {
 namespace framework {
 namespace core {
 
-ConnectionController::ConnectionController(uint64_t id, network::tcp::connection_ptr c)
+ConnectionController::ConnectionController(uint32_t id, network::tcp::connection_ptr c)
     : LogicUnit<network::tcp::connection_ptr>(id, c, PROCESS_ONCE)
     , main_command_(0), access_count_(0), connection_(c)
 {

@@ -33,10 +33,23 @@ DateTime DateTime::fromString(const std::string& str) // 2009-12-31 12:56:12.888
 
 std::string DateTime::toString(const DateTime& dt)
 {
-    char str[256] = { 0 };
-    sprintf(str, "%04d-%02d-%02d %02d:%02d:%02d.%d", dt.year_, dt.month_, dt.day_,
-            dt.hour_, dt.minute_, dt.second_, dt.milliseconds_);
-    return str;
+    std::string s;
+    std::stringstream ss;
+    ss << std::setw(4) << std::setfill('0') << dt.year()
+       << std::setw(1) << '-'
+       << std::setw(2) << dt.month()
+       << std::setw(1) << '-'
+       << std::setw(2) << dt.day()
+       << std::setw(1) << ' '
+       << std::setw(2) << dt.hour()
+       << std::setw(1) << ':'
+       << std::setw(2) << dt.minute()
+       << std::setw(1) << ':'
+       << std::setw(2) << dt.second()
+       << std::setw(1) << '.'
+       << std::setw(3) << dt.milliseconds();
+    s = ss.str();
+    return s;
 }
 
 DateTime DateTime::now()

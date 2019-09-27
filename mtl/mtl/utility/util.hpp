@@ -9,20 +9,13 @@ namespace util {
 MTL_EXPORT unsigned char* encrypt(unsigned char* data, int data_len,
                                    const unsigned char* key, int key_len);
 
-MTL_EXPORT std::string bcd(const unsigned char* data, int len);
-
 MTL_EXPORT int evaluateScale(const std::string& ip1, const std::string& ip2);
-
-MTL_EXPORT uint64_t generateNextId();
 
 //MTL_EXPORT std::wstring ansiToUnicode(const std::string& src);
 //MTL_EXPORT std::string unicodeToAnsi(const std::wstring& src);
 
 //MTL_EXPORT std::wstring utf8ToUnicode(const std::string& src);
 //MTL_EXPORT std::string unicodeToUtf8(const std::wstring& src);
-
-MTL_EXPORT std::string getLogString();
-extern void log(const char* format, ...);
 
 } // util
 } // namespace mtl

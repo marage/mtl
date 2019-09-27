@@ -11,7 +11,7 @@ namespace core {
 class MTL_EXPORT ConnectionController : public LogicUnit<network::tcp::connection_ptr>
 {
 public:
-    ConnectionController(uint64_t id, network::tcp::connection_ptr c);
+    ConnectionController(uint32_t id, network::tcp::connection_ptr c);
 
     uint16_t mainCommand() const { return main_command_; }
     uint64_t accessCount() const { return access_count_; }
