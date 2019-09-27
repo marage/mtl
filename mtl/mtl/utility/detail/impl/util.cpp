@@ -12,20 +12,20 @@ unsigned char* encrypt(unsigned char* data, int data_len,
                        const unsigned char* key, int key_len)
 {
     unsigned char rc_key[256];
-    mtl::RC4::init(rc_key, key, key_len);
-    mtl::RC4::encrypt(rc_key, data, data_len);
+    rc4::init(rc_key, key, key_len);
+    rc4::encrypt(rc_key, data, data_len);
     return data;
 }
 
-int evaluateScale(const std::string& ip1, const std::string& ip2)
+int evaluateScore(const std::string& ip1, const std::string& ip2)
 {
-    int scale = 1;
+    int score = 1;
     const char* p = ip1.c_str();
     const char* q = ip2.c_str();
     while (*p == *q && *p++ != '\0' && *q++ != '\0') {
-        scale *= 2;
+        score *= 2;
     }
-    return scale;
+    return score;
 }
 
 //std::wstring utf8ToUnicode(const std::string& src)

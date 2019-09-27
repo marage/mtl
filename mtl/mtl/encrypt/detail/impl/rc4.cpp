@@ -1,8 +1,9 @@
 #include "mtl/encrypt/rc4.hpp"
 
 namespace mtl {
+namespace rc4 {
 
-void RC4::init(unsigned char s[256], const unsigned char* key, int len)
+void init(unsigned char s[256], const unsigned char* key, int len)
 {
     int i = 0, j = 0, k[256] = { 0 };
     unsigned char tmp = 0;
@@ -18,7 +19,7 @@ void RC4::init(unsigned char s[256], const unsigned char* key, int len)
     }
 }
 
-void RC4::encrypt(unsigned char s[256], unsigned char* data, int len)
+void encrypt(unsigned char s[256], unsigned char* data, int len)
 {
     int x = 0, y = 0, t = 0, i = 0;
     unsigned char tmp;
@@ -32,4 +33,6 @@ void RC4::encrypt(unsigned char s[256], unsigned char* data, int len)
         data[i] ^= s[t];
     }
 }
-}
+
+} // namespace rc4
+} // namespace mtl

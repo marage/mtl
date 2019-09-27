@@ -21,7 +21,7 @@ public:
     bool hasActiveSubTasks() const;
 
 private:
-    Status processImpl() override;
+    Status processImpl() final;
 
     typedef std::list<task_ptr> TaskList;
     TaskList tasks_;

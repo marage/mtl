@@ -9,7 +9,7 @@ namespace util {
 MTL_EXPORT unsigned char* encrypt(unsigned char* data, int data_len,
                                    const unsigned char* key, int key_len);
 
-MTL_EXPORT int evaluateScale(const std::string& ip1, const std::string& ip2);
+MTL_EXPORT int evaluateScore(const std::string& ip1, const std::string& ip2);
 
 //MTL_EXPORT std::wstring ansiToUnicode(const std::string& src);
 //MTL_EXPORT std::string unicodeToAnsi(const std::wstring& src);
