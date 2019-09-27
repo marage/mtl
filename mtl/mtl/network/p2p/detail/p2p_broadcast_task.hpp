@@ -13,14 +13,14 @@ namespace p2p {
 class Client;
 class Server;
 
-class BroadcastNeighborsTask : public Task
+class BroadcastNeighborsTask final : public Task
 {
 public:
     BroadcastNeighborsTask(Client* c, const OutRequest& oreq, int timeout,
                            const boost::asio::ip::udp::endpoint& from);
 
 private:
-    Status processImpl() override;
+    Status processImpl();
 
     Client* client_;
     OutRequest request_;
@@ -28,15 +28,15 @@ private:
     int next_pos_;
 };
 
-class BroadcastClientsTask : public Task
+class BroadcastClientsTask final : public Task
 {
 public:
     BroadcastClientsTask(Server* s, const OutRequest& oreq, int timeout,
                          const boost::asio::ip::udp::endpoint& from);
 
 private:
-    void activateImpl() override;
-    Status processImpl() override;
+    void activateImpl();
+    Status processImpl();
 
     Server* server_;
     OutRequest request_;

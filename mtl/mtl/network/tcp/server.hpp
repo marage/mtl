@@ -31,7 +31,7 @@ public:
 
   /// Construct the server to listen on the specified TCP address and port.
   explicit Server(ContextPool& isp);
-  ~Server();
+  virtual ~Server();
 
   /// Run the server's io_service loop.
   virtual bool open(const std::string& address, unsigned short port);

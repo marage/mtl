@@ -17,7 +17,7 @@ public:
     bool open(const boost::asio::ip::udp::endpoint& endpoint, uint32_t frequency) override;
     void close() override;
 
-    inline bool isClient(const boost::asio::ip::udp::endpoint& endpoint) const;
+    bool isClient(const boost::asio::ip::udp::endpoint& endpoint) const;
 
     void broadcast(OutRequest& oreq, int32_t timeout = 5000);
 
@@ -64,7 +64,7 @@ private:
 
 typedef boost::shared_ptr<Server> server_ptr;
 
-bool Server::isClient(const boost::asio::ip::udp::endpoint& endpoint) const
+inline bool Server::isClient(const boost::asio::ip::udp::endpoint& endpoint) const
 {
     return graph_.containsVertex(toString(endpoint));
 }

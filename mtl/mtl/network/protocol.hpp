@@ -6,16 +6,16 @@ namespace mtl {
 namespace network {
 
 // version
-const uint8_t VERSION = 0x01;
+constexpr uint8_t VERSION = 0x01;
 
 // format: len | ver | common | option | seq
-const int LEN_FIELD_LENGTH = sizeof(uint16_t);
-const int VER_FIELD_LENGTH = sizeof(uint8_t);
-const int COMMAND_FIELD_LENGTH = sizeof(uint32_t);
-const int OPTION_FIELD_LENGTH = sizeof(uint8_t);
-const int SEQ_FIELD_LENGTH = sizeof(uint32_t);
-const int HEADER_LENGTH = LEN_FIELD_LENGTH + VER_FIELD_LENGTH + COMMAND_FIELD_LENGTH
-        + OPTION_FIELD_LENGTH + SEQ_FIELD_LENGTH;
+constexpr int LEN_FIELD_LENGTH = sizeof(uint16_t);
+constexpr int VER_FIELD_LENGTH = sizeof(uint8_t);
+constexpr int COMMAND_FIELD_LENGTH = sizeof(uint32_t);
+constexpr int OPTION_FIELD_LENGTH = sizeof(uint8_t);
+constexpr int SEQ_FIELD_LENGTH = sizeof(uint32_t);
+constexpr int HEADER_LENGTH = LEN_FIELD_LENGTH + VER_FIELD_LENGTH + COMMAND_FIELD_LENGTH
+                              + OPTION_FIELD_LENGTH + SEQ_FIELD_LENGTH;
 
 enum SkipPosition
 {

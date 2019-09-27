@@ -44,8 +44,8 @@ public:
     virtual bool open(const boost::asio::ip::udp::endpoint& endpoint, uint32_t frequency);
     virtual void close();
 
-    inline bool isMember() const { return (status_ == JOINED); }
-    inline Role role() const { return role_; }
+    bool isMember() const { return (status_ == JOINED); }
+    Role role() const { return role_; }
     boost::asio::ip::udp::endpoint localEndpoint() const;
     bool isNeighbor(const boost::asio::ip::udp::endpoint& endpoint) const;
 

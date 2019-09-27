@@ -8,16 +8,15 @@ namespace mtl {
 namespace framework {
 namespace core {
 
-class HeartBeatTask : public Task
+class HeartBeatTask final : public Task
 {
 public:
     explicit HeartBeatTask(network::tcp::client_ptr client,
                            int timeout = HEARTBEAT_TIMEOUT);
 
-protected:
-    Status processImpl() override;
-
 private:
+    Status processImpl();
+
     network::tcp::client_ptr client_;
     int timeout_;
 };

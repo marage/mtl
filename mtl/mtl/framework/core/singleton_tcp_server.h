@@ -15,9 +15,9 @@ class MTL_EXPORT SingletonTCPServer
 public:
     typedef Singleton<SingletonTCPServer<ControllerFactory>> Base;
 
-    explicit SingletonTCPServer(network::IOServicePool& isp,
+    explicit SingletonTCPServer(network::ContextPool& cp,
                                 ControllerFactory* controller_factory)
-        : TCPServer<ControllerFactory>(isp, controller_factory)
+        : TCPServer<ControllerFactory>(cp, controller_factory)
     {
     }
 
