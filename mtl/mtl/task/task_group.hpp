@@ -1,31 +1,31 @@
-#ifndef MTL_TASK_GROUP_HPP
+﻿#ifndef MTL_TASK_GROUP_HPP
 #define MTL_TASK_GROUP_HPP
 #include "task.hpp"
 #include <list>
 
 namespace mtl {
 
-class MTL_EXPORT TaskGroup : public Task
-{
+class MTL_EXPORT TaskGroup : public Task {
 public:
-    explicit TaskGroup(int type = 0, bool parallel = false, int timeout = 10000);
-    virtual ~TaskGroup();
+  explicit TaskGroup(int type = 0, bool parallel = false,
+                     int timeout = 10000);
+  ~TaskGroup() override;
 
-    int count() const { return static_cast<int>(tasks_.size()); }
-    task_ptr find(int type) const;
-    void add(const task_ptr& t);
-    void remove(const task_ptr& t);
-    void removeFirst();
-    void removeAll();
+  inline int count() const { return static_cast<int>(tasks_.size()); }
+  TaskPtr Find(int type) const;
+  void Append(const TaskPtr& t);
+  void Remove(const TaskPtr& t);
+  void RemoveFirst();
+  void RemoveAll();
 
-    bool hasActiveSubTasks() const;
+  bool HasActiveSubTasks() const;
 
 private:
-    Status processImpl() final;
+  State ProcessImpl() override;
 
-    typedef std::list<task_ptr> TaskList;
-    TaskList tasks_;
-    bool parallel_;
+  typedef std::list<TaskPtr> TaskList;
+  TaskList tasks_;
+  bool parallel_;
 };
 
 } // namespace mtl

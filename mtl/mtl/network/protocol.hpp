@@ -1,28 +1,37 @@
-#ifndef MTL_NETWORK_PROTOCOL_HPP
+﻿#ifndef MTL_NETWORK_PROTOCOL_HPP
 #define MTL_NETWORK_PROTOCOL_HPP
+#include <boost/asio/ip/address.hpp>
+#include <boost/asio/ip/udp.hpp>
+#include <boost/asio/ip/tcp.hpp>
+#include <boost/asio/io_service.hpp>
+#include <boost/asio/deadline_timer.hpp>
 #include "mtl/mtl.hpp"
 
 namespace mtl {
 namespace network {
 
 // version
-constexpr uint8_t VERSION = 0x01;
+constexpr uint8_t kVersion = 0x01;
 
 // format: len | ver | common | option | seq
-constexpr int LEN_FIELD_LENGTH = sizeof(uint16_t);
-constexpr int VER_FIELD_LENGTH = sizeof(uint8_t);
-constexpr int COMMAND_FIELD_LENGTH = sizeof(uint32_t);
-constexpr int OPTION_FIELD_LENGTH = sizeof(uint8_t);
-constexpr int SEQ_FIELD_LENGTH = sizeof(uint32_t);
-constexpr int HEADER_LENGTH = LEN_FIELD_LENGTH + VER_FIELD_LENGTH + COMMAND_FIELD_LENGTH
-                              + OPTION_FIELD_LENGTH + SEQ_FIELD_LENGTH;
+constexpr uint16_t kLenFieldLength = sizeof(uint16_t);
+constexpr uint16_t kVerFieldLength = sizeof(uint8_t);
+constexpr uint16_t kCommandFieldLength = sizeof(uint32_t);
+constexpr uint16_t kOptionFieldLength = sizeof(uint8_t);
+constexpr uint16_t kSeqFieldLength = sizeof(uint32_t);
+constexpr uint16_t kHeaderLength = kLenFieldLength + kVerFieldLength
+        + kCommandFieldLength + kOptionFieldLength + kSeqFieldLength;
 
-enum SkipPosition
-{
-    SKIP_BEGIN,
-    SKIP_CURRENT,
-    SKIP_END
+enum SkipPosition {
+    kSkipBegin,
+    kSkipCurrent,
+    kSkipEnd
 };
+
+using UdpEndpoint = boost::asio::ip::udp::endpoint;
+using UdpSocket = boost::asio::ip::udp::socket;
+using TcpEndpoint = boost::asio::ip::tcp::endpoint;
+using TcpSocket = boost::asio::ip::tcp::socket;
 
 } // namespace network
 } // namespace mtl

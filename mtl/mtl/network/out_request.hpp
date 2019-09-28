@@ -1,12 +1,11 @@
-#ifndef MTL_NETWORK_OUT_REQUEST_HPP
+﻿#ifndef MTL_NETWORK_OUT_REQUEST_HPP
 #define MTL_NETWORK_OUT_REQUEST_HPP
 #include "out_stream.hpp"
 
 namespace mtl {
 namespace network {
 
-class MTL_EXPORT OutRequest : public OutStream
-{
+class MTL_EXPORT OutRequest : public OutStream {
 public:
     explicit OutRequest(uint32_t cmd = 0, uint32_t seq = 0, uint16_t begin = 0);
     OutRequest(const SharedBuffer& buffer, uint16_t size, uint16_t begin = 0);
@@ -17,7 +16,7 @@ public:
     uint8_t option() const;
     uint32_t sequence() const;
     const char* data() const;
-    uint16_t data_size() const;
+    uint16_t dataSize() const;
 
     OutRequest& writeLength(uint16_t len);
     OutRequest& writeVersion(uint8_t ver);

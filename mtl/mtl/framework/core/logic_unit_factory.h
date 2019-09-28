@@ -9,17 +9,15 @@ namespace framework {
 namespace core {
 
 template <typename T>
-class LogicUnitFactory : private boost::noncopyable
-{
+class LogicUnitFactory : private boost::noncopyable {
 public:
-    typedef T Unit;
-    typedef boost::shared_ptr<T> unit_ptr;
-    typedef typename T::Terminal Terminal;
+  typedef T Unit;
+  typedef boost::shared_ptr<T> UnitPtr;
+  typedef typename T::Terminal Terminal;
 
-    unit_ptr createUnit(uint32_t id, Terminal t, int pt)
-    {
-        return unit_ptr(new T(id, t, pt));
-    }
+  UnitPtr CreateUnit(uint32_t id, Terminal t, int pt) {
+    return UnitPtr(new T(id, t, pt));
+  }
 };
 
 typedef LogicUnitFactory<ClientLogicUnit> ClientLogicUnitFactory;

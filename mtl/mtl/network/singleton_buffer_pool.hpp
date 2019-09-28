@@ -1,4 +1,4 @@
-#ifndef MTL_NETWORK_SINGLATON_BUFFER_POOL_HPP
+﻿#ifndef MTL_NETWORK_SINGLATON_BUFFER_POOL_HPP
 #define MTL_NETWORK_SINGLATON_BUFFER_POOL_HPP
 #include <boost/pool/poolfwd.hpp>
 #include <boost/pool/pool_alloc.hpp>
@@ -6,15 +6,14 @@
 #include <boost/noncopyable.hpp>
 #include "mtl/mtl.hpp"
 #include "mtl/singleton/singleton.hpp"
-#include "./detail/unfixable_buffer_pool.hpp"
+#include "./detail/floating_buffer_pool.hpp"
 #include "shared_buffer.hpp"
 
 namespace mtl {
 namespace network {
 
 class MTL_EXPORT SingletonBufferPool
-    : public Singleton<SingletonBufferPool>, private boost::noncopyable
-{
+        : public Singleton<SingletonBufferPool>, private boost::noncopyable {
 public:
     SingletonBufferPool();
     ~SingletonBufferPool();
@@ -22,15 +21,15 @@ public:
     static SingletonBufferPool& getSingleton();
     static SingletonBufferPool* getSingletonPtr();
 
-    bool isFrom(void* p);
-    SharedBuffer malloc(int size);
-    void free(void* p);
+    bool IsFrom(void* p);
+    SharedBuffer Malloc(int size);
+    void Free(void* p);
 
-    void releaseMemory();
+    void ReleaseMemory();
 
 private:
     boost::pool<> fixed_pool_;
-    UnfixableBufferPool unfixable_pool_;
+    FloatingBufferPool floating_pool_;
     boost::mutex mutex_;
 };
 

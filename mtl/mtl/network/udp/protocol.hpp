@@ -1,4 +1,4 @@
-#ifndef MTL_NETWORK_UDP_PROTOCOL_HPP
+﻿#ifndef MTL_NETWORK_UDP_PROTOCOL_HPP
 #define MTL_NETWORK_UDP_PROTOCOL_HPP
 #include "mtl/network/protocol.hpp"
 
@@ -7,43 +7,47 @@ namespace network {
 namespace udp {
 
 // version
-const uint8_t UDP_VERSION = 0x01;
+constexpr uint8_t kUdpVersion = 0x01;
 
 // udp packet size
-const int UDP_PACKET_SIZE = 1024;
+constexpr uint16_t kUdpMaxPacketSize = 1024;
 
 // format: common header
-const int UDP_HEADER_LENGTH = HEADER_LENGTH;
+constexpr uint16_t kUdpHeaderLength = kHeaderLength;
 
 // dgram group packet request header size
-// header | groupid(int16_t) | subtype(int8_t) | blockcount(int16_t) | blockindex(int16_t)
-const int UDP_GROUP_HEADER_LENGTH = UDP_HEADER_LENGTH + sizeof(int8_t) + 3 * sizeof(int16_t);
+// header | groupid(int16_t) | subtype(int8_t) | blockcount(int8_t)
+// | blockindex(int8_t)
+constexpr uint16_t kUdpGroupHeaderLength = kUdpHeaderLength + sizeof(int16_t)
+    + 3 * sizeof(int8_t);
 
-const int UDP_DATA_SIZE = UDP_PACKET_SIZE - UDP_HEADER_LENGTH;
-const int UDP_GROUP_DATA_SIZE = UDP_PACKET_SIZE - UDP_GROUP_HEADER_LENGTH;
+constexpr uint16_t kUdpDataSize = kUdpMaxPacketSize - kUdpHeaderLength;
+constexpr uint16_t kUdpGroupDataSize = kUdpMaxPacketSize - kUdpGroupHeaderLength;
 
-const int UDP_GROUP_BLOCK_COUNT = UDP_GROUP_DATA_SIZE / sizeof(int16_t);
-const int UDP_BUFFER_SIZE = UDP_GROUP_BLOCK_COUNT * UDP_GROUP_DATA_SIZE - UDP_HEADER_LENGTH;
+constexpr uint16_t kUdpGroupBlockCount = 255;
+constexpr uint16_t kUdpBufferSize =
+    uint16_t(kUdpGroupBlockCount * kUdpGroupDataSize - kUdpHeaderLength);
 
-const int UDP_TIMEOUT = 1000; // 1s
-const int UDP_TRYOUT_TIMEOUT = 500;
-const int UDP_WINDOW = 5;
-const int UDP_ALIVE = 2000;   // 2s
+constexpr uint32_t kUdpTimeout = 1000; // 1s
+constexpr uint32_t kUdpTryoutTimeout = 500;
+constexpr uint32_t kUdpTryoutCount = 3;
+constexpr uint32_t kUdpAlive = 2000;   // 2s
+constexpr uint8_t kUdpWindow = 8;
+constexpr uint8_t kUdpMaxWindow = 255;
 
 // packet type
-const uint16_t PT_UDP = 0x01;
-const uint16_t PT_RUDP = 0x02;
-const uint16_t PT_ACK = 0x03;
-const uint16_t PT_GROUP_OUT = 0x04;
-const uint16_t PT_GROUP_IN = 0x05;
-const uint16_t PT_KEEPALIVE = 0x06;
+constexpr uint16_t kUdpType = 0x01;
+constexpr uint16_t kRudpType = 0x02;
+constexpr uint16_t kAckType = 0x03;
+constexpr uint16_t kOutGroupType = 0x04;
+constexpr uint16_t kInGroupType = 0x05;
+constexpr uint16_t kKeepAliveType = 0x06;
 
 // udp group packet type
-const uint8_t PT_GROUP_BLOCK = 0x01;
-const uint8_t PT_GROUP_LAST_BLOCK = 0x02;
-const uint8_t PT_GROUP_REPORT = 0x03;
-const uint8_t PT_GROUP_OK = 0x04;
-const uint8_t PT_GROUP_CANCEL = 0x05;
+constexpr uint8_t kGroupBlockType = 0x01;
+constexpr uint8_t kGroupBlockActType = 0x02;
+constexpr uint8_t kGroupReportType = 0x03;
+constexpr uint8_t kGroupCancelType = 0x04;
 
 } //udp
 } //network

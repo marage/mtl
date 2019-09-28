@@ -1,4 +1,4 @@
-#ifndef MTL_FRAMEWORK_CORE_HEART_BEAT_TASK_H
+﻿#ifndef MTL_FRAMEWORK_CORE_HEART_BEAT_TASK_H
 #define MTL_FRAMEWORK_CORE_HEART_BEAT_TASK_H
 #include "mtl/task/task.hpp"
 #include "mtl/network/tcp/client.hpp"
@@ -8,17 +8,17 @@ namespace mtl {
 namespace framework {
 namespace core {
 
-class HeartBeatTask final : public Task
-{
+class HeartBeatTask : public Task {
 public:
-    explicit HeartBeatTask(network::tcp::client_ptr client,
-                           int timeout = HEARTBEAT_TIMEOUT);
+  explicit HeartBeatTask(network::tcp::ClientPtr client,
+                         int timeout = 5000);
+
+protected:
+  State ProcessImpl() override;
 
 private:
-    Status processImpl();
-
-    network::tcp::client_ptr client_;
-    int timeout_;
+  network::tcp::ClientPtr client_;
+  int timeout_;
 };
 
 } // core

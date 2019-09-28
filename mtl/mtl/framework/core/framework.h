@@ -1,4 +1,4 @@
-#ifndef MTL_FRAMEWORK_H
+﻿#ifndef MTL_FRAMEWORK_H
 #define MTL_FRAMEWORK_H
 #include <vector>
 #include <map>
@@ -15,7 +15,7 @@
 #include "mtl/network/in_request.hpp"
 
 #ifdef _MSC_VER
-#include <WS2tcpip.h>
+#include <Ws2tcpip.h>
 #pragma warning(push)
 #pragma warning(disable: 4996)
 #endif
@@ -24,12 +24,10 @@
 #pragma warning(pop)
 #endif
 
-#define CONNECTION_TIMEOUT  100000
-#define HEARTBEAT_TIMEOUT 5000
-
 #define GET_MAIN_COMMAND(req) ((uint16_t)(((uint32_t)(req)) >> 16))
 #define GET_SUB_COMMAND(req) (((uint16_t)(req)) & 0x7FFF)
-#define GET_REQUEST_TYPE(main_cmd, sub_cmd) ((uint32_t)((uint16_t)(main_cmd) << 16) | (uint16_t)(sub_cmd))
+#define GET_REQUEST_TYPE(main_cmd, sub_cmd) \
+  ((uint32_t)((uint16_t)(main_cmd) << 16) | (uint16_t)(sub_cmd))
 
 namespace mtl {
 namespace framework {
@@ -40,8 +38,8 @@ using OutRequest = mtl::network::OutRequest;
 using DateTime = mtl::DateTime;
 using RequestHandler = std::function<void(InRequest&)>;
 using RequestHandlerMap = std::map<uint32_t, RequestHandler>;
-using UDPEndpoint = boost::asio::ip::udp::endpoint;
-using TCPEndpoint = boost::asio::ip::tcp::endpoint;
+using AsioUDPEndpoint = mtl::network::UdpEndpoint;
+using TCPEndpoint = mtl::network::TcpEndpoint;
 
 } // core
 } // framework

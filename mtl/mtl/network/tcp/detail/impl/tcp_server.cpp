@@ -10,64 +10,56 @@
 
 #include "mtl/network/tcp/server.hpp"
 #include <boost/bind.hpp>
-#include <boost/asio/placeholders.hpp>
 
 namespace mtl {
 namespace network {
 namespace tcp {
 
-Server::Server(ContextPool& isp)
-    : context_pool_(isp), acceptor_(context_pool_.getContext())
-{
+Server::Server(IOServicePool& isp)
+  : io_service_pool_(isp), acceptor_(io_service_pool_.GetIOService()) {
 }
 
-Server::~Server()
-{
+Server::~Server() {
 }
 
-bool Server::open(const std::string& address, unsigned short port)
-{
-    // Open the acceptor with the option to reuse the address (i.e. SO_REUSEADDR).
-    boost::asio::ip::address addr = boost::asio::ip::address::from_string(address);
-    boost::asio::ip::tcp::endpoint endpoint(addr, port);
-    acceptor_.open(boost::asio::ip::tcp::v4());
-    acceptor_.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
-    acceptor_.bind(endpoint);
-    acceptor_.listen();
-    startAccept();
-    return true;
+bool Server::Open(const std::string& address, unsigned short port) {
+  // Open the acceptor with the option to reuse the address (i.e. SO_REUSEADDR).
+  boost::asio::ip::address addr = boost::asio::ip::address::from_string(address);
+  TCPEndpoint endpoint(addr, port);
+  acceptor_.open(boost::asio::ip::tcp::v4());
+  acceptor_.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
+  acceptor_.bind(endpoint);
+  acceptor_.listen();
+  StartAccept();
+  return true;
 }
 
-bool Server::close()
-{
-    boost::system::error_code ec;
-    acceptor_.close(ec);
-    return !ec;
+bool Server::Close() {
+  boost::system::error_code ec;
+  acceptor_.close(ec);
+  return !ec;
 }
 
-boost::asio::ip::tcp::endpoint Server::localEndpoint() const
-{
-    boost::system::error_code ec;
-    return acceptor_.local_endpoint(ec);
+TCPEndpoint Server::LocalEndpoint() const {
+  boost::system::error_code ec;
+  return acceptor_.local_endpoint(ec);
 }
 
-void Server::startAccept()
-{
-    new_connection_.reset(new Connection(
-                              context_pool_.getContext()));
-    acceptor_.async_accept(new_connection_->socket(),
-                           boost::bind(&Server::handleAccept, this,
-                                       boost::asio::placeholders::error));
+void Server::StartAccept() {
+  new_connection_.reset(new Connection(
+                          io_service_pool_.GetIOService()));
+  acceptor_.async_accept(new_connection_->socket(),
+                         boost::bind(&Server::HandleAccept, this,
+                                     boost::asio::placeholders::error));
 }
 
-void Server::handleAccept(const boost::system::error_code& e)
-{
-    if (!e) {
-        if (new_connection_signal(new_connection_))
-            new_connection_->start();
-    }
+void Server::HandleAccept(const boost::system::error_code& e) {
+  if (!e) {
+    if (new_connection_signal(new_connection_))
+      new_connection_->Start();
+  }
 
-    startAccept();
+  StartAccept();
 }
 } // namespace tcp
 } // namespace network

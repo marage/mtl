@@ -1,50 +1,46 @@
-#ifndef MTL_NETWORK_DGRAM_PACKET_RECORD_HPP
+﻿#ifndef MTL_NETWORK_DGRAM_PACKET_RECORD_HPP
 #define MTL_NETWORK_DGRAM_PACKET_RECORD_HPP
 #include <boost/cstdint.hpp>
-#include <boost/asio/ip/udp.hpp>
 #include <unordered_set>
+#include "mtl/network/protocol.hpp"
 
 namespace mtl {
 namespace network {
 namespace udp {
 
-class PacketRecord
-{
+class PacketRecord {
 public:
-    enum
-    {
-        MAX_RECORD_COUNT = 500
-    };
+  enum {
+    kMaxRecordCount = 500
+  };
 
-    PacketRecord();
-    bool passed(uint32_t seq, const boost::asio::ip::udp::endpoint& from);
+  PacketRecord();
+  bool Passed(uint32_t seq, const UdpEndpoint& from);
 
 private:
-    std::unordered_set<uint32_t> seq_set_;
-    uint32_t seqs_[MAX_RECORD_COUNT];
-    boost::asio::ip::udp::endpoint addresses_[MAX_RECORD_COUNT];
-    int pos_;
+  std::unordered_set<uint32_t> seq_set_;
+  uint32_t seqs_[kMaxRecordCount];
+  UdpEndpoint addresses_[kMaxRecordCount];
+  int pos_;
 };
 
-class GroupRecord
-{
+class GroupRecord {
 public:
-    enum
-    {
-        MAX_RECORD_COUNT = 500
-    };
+  enum {
+    kMaxRecordCount = 500
+  };
 
-    GroupRecord();
-    bool exists(uint16_t id, uint16_t count,
-                const boost::asio::ip::udp::endpoint& from) const;
-    void append(uint16_t id, uint16_t count,
-                const boost::asio::ip::udp::endpoint& from);
+  GroupRecord();
+  bool Exists(uint16_t id, uint16_t count,
+              const UdpEndpoint& from) const;
+  void Append(uint16_t id, uint16_t count,
+              const UdpEndpoint& from);
 
 private:
-    uint16_t ids_[MAX_RECORD_COUNT];
-    uint16_t counts_[MAX_RECORD_COUNT];
-    boost::asio::ip::udp::endpoint addresses_[MAX_RECORD_COUNT];
-    int pos_;
+  uint16_t ids_[kMaxRecordCount];
+  uint16_t counts_[kMaxRecordCount];
+  UdpEndpoint addresses_[kMaxRecordCount];
+  int pos_;
 };
 
 } // dgram

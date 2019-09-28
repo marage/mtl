@@ -3,29 +3,26 @@
 namespace mtl {
 
 Task::Task(int type, int timeout)
-    : type_(type), status_(INACTIVE)
-{
-    if (timeout > 0) {
-        dead_time_ = boost::posix_time::microsec_clock::local_time() +
-                boost::posix_time::time_duration(boost::posix_time::milliseconds(timeout));
-    }
+  : type_(type), state_(kInactive) {
+  if (timeout > 0) {
+    dead_time_ = std::chrono::system_clock::now()
+        + std::chrono::milliseconds(timeout);
+  }
 }
 
-void Task::activate()
-{
-    status_ = ACTIVE;
-    activateImpl();
+void Task::Activate() {
+  state_ = kActive;
+  ActivateImpl();
 }
 
-Task::Status Task::process()
-{
-    if (!dead_time_.is_not_a_date_time()) {
-        if (dead_time_ <= boost::posix_time::microsec_clock::local_time()) {
-            status_ = FAILED;
-            return FAILED;
-        }
+Task::State Task::Process() {
+  if (dead_time_.time_since_epoch() != std::chrono::system_clock::time_point::duration::zero()) {
+    if (dead_time_ <= std::chrono::system_clock::now()) {
+      state_ = kFailed;
+      return kFailed;
     }
-    return ((status_ == ACTIVE) ? processImpl() : status_);
+  }
+  return ((state_ == kActive) ? ProcessImpl() : state_);
 }
 
 }

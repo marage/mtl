@@ -7,21 +7,18 @@ namespace mtl {
 namespace framework {
 namespace core {
 
-HeartBeatTask::HeartBeatTask(network::tcp::client_ptr client,
+HeartBeatTask::HeartBeatTask(network::tcp::ClientPtr client,
                              int timeout)
-    : Task(0, 0), client_(client), timeout_(timeout)
-{
+  : Task(0, 0), client_(client), timeout_(timeout) {
 }
 
-Task::Status HeartBeatTask::processImpl()
-{
-    typedef std::chrono::duration<int64_t, std::milli> milli_type;
-    auto d = std::chrono::system_clock::now() - client_->lastRequestTime();
-    if ((std::chrono::duration_cast<milli_type>(d)).count() >= timeout_) {
-        network::OutRequest oreq(0);
-        client_->send(oreq);
-    }
-    return Task::ACTIVE;
+Task::State HeartBeatTask::ProcessImpl() {
+  auto d = std::chrono::system_clock::now() - client_->LastRequestTime();
+  if ((std::chrono::duration_cast<std::chrono::milliseconds>(d)).count() >= timeout_) {
+    network::OutRequest oreq(0);
+    client_->Send(oreq);
+  }
+  return Task::kActive;
 }
 }
 }

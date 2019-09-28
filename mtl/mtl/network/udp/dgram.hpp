@@ -1,13 +1,14 @@
-#ifndef MTL_NETWORK_DGRAM_HPP
+﻿#ifndef MTL_NETWORK_DGRAM_HPP
 #define MTL_NETWORK_DGRAM_HPP
-#include <boost/noncopyable.hpp>
-#include <boost/asio/ip/udp.hpp>
-#include <boost/asio/deadline_timer.hpp>
-#include <boost/signals2/signal.hpp>
-#include <boost/thread/mutex.hpp>
-#include <boost/enable_shared_from_this.hpp>
-#include <boost/date_time/posix_time/posix_time.hpp>
 #include <map>
+#include <condition_variable>
+#include <mutex>
+#include <thread>
+#include <boost/noncopyable.hpp>
+#include <boost/enable_shared_from_this.hpp>
+#include <boost/signals2/signal.hpp>
+#include <boost/asio/io_service.hpp>
+#include "mtl/network/protocol.hpp"
 #include "mtl/network/shared_buffer.hpp"
 #include "mtl/network/out_request.hpp"
 #include "mtl/network/udp/detail/dgram_packet_record.hpp"
@@ -21,106 +22,139 @@ class InRequest;
 namespace udp {
 
 /// forward classes
-class GroupRecvTask;
+class GroupReceiveTask;
 class GroupSendTask;
 
 /// Not support thread
 class MTL_EXPORT Dgram
-    : public boost::enable_shared_from_this<Dgram>, private boost::noncopyable
-{
+        : public boost::enable_shared_from_this<Dgram>
+        , private boost::noncopyable {
 public:
     /// signals
-    boost::signals2::signal<void(const OutRequest&, const boost::asio::ip::udp::endpoint&, int32_t)> sent_signal;
-    boost::signals2::signal<void(InRequest&, const boost::asio::ip::udp::endpoint&, int32_t)> arrival_signal;
-    boost::signals2::signal<void(const OutRequest&, const boost::asio::ip::udp::endpoint&)> timeout_signal;
-    boost::signals2::signal<void(const boost::asio::ip::udp::endpoint&)> keep_alive_signal;
-    boost::signals2::signal<void(InRequest&, const boost::asio::ip::udp::endpoint&, bool*)> group_head_arrival_signal;
-    boost::signals2::signal<void()> timer_tick_signal;
+    boost::signals2::signal<void(const OutRequest&, const UdpEndpoint&, int32_t)> sent_signal;
+    boost::signals2::signal<void(InRequest&, const UdpEndpoint&, int32_t)> arrival_signal;
+    boost::signals2::signal<void(const OutRequest&, const UdpEndpoint&)> timeout_signal;
+    boost::signals2::signal<void(const UdpEndpoint&)> keep_alive_signal;
+    boost::signals2::signal<void(InRequest&, const UdpEndpoint&, bool*)> group_head_arrival_signal;
+    boost::signals2::signal<void()> tick_signal;
 
     explicit Dgram(boost::asio::io_context& io_context);
     ~Dgram();
 
-    bool open(const boost::asio::ip::udp::endpoint& endpoint, uint32_t frequency = 1000);
+    bool open(const UdpEndpoint& endpoint);
     void close();
 
-    boost::asio::io_context& context() { return io_context_; }
-    boost::asio::ip::udp::endpoint localEndpoint() const;
-    bool isBusy();
-    bool sendTo(const OutRequest& oreq, const boost::asio::ip::udp::endpoint& to, uint32_t timeout = 5000);
-    void keepAlive(const boost::asio::ip::udp::endpoint& to, bool alive = true);
-    void clearPackets(const boost::asio::ip::udp::endpoint& to);
-    void clearPackets();
+    boost::asio::io_service& GetIOService();
+    UdpEndpoint LocalEndpoint() const;
+    bool IsBusy();
+    bool SendTo(const OutRequest& oreq, const UdpEndpoint& to,
+                uint32_t timeout = 5000);
+    void KeepAlive(const UdpEndpoint& to, bool alive = true);
+    void ClearPackets(const UdpEndpoint& to);
+    void ClearPackets();
 
-    static uint32_t nextSequence();
+    static uint32_t NextSequence();
+    inline static std::string ToString(const UdpEndpoint& endpoint);
 
 private:
-    void sendNextPacket();
-    void sendPacketAck(uint32_t seq, const boost::asio::ip::udp::endpoint& to);
+    bool DestIsReceiving(const UdpEndpoint& dest) const;
+    GroupReceiveTask* GetReceiveTask(uint16_t id, const UdpEndpoint& from) const;
 
-    void asyncReceiveFrom();
-    void asyncSendTo(OutRequest& oreq, const boost::asio::ip::udp::endpoint& to, uint32_t timeout);
+    void AsyncReceiveFrom();
+    void AsyncSendTo(OutRequest& oreq, const UdpEndpoint& to, uint32_t timeout);
 
-    void handleReceiveFrom(const boost::system::error_code& error, size_t bytes_transferred);
-    void handleReceiveFinished(size_t bytes_recvd);
-    void handlePacketAck(InRequest& ireq);
-    void handleReceiveGroupPacket(InRequest& ireq, const boost::asio::ip::udp::endpoint& from);
-    void handleReceiveGroupPacketAck(InRequest& ireq, const boost::asio::ip::udp::endpoint& from);
-    void handleSendTo(const SharedBuffer& buffer, const boost::system::error_code& error,
+    void HandleReceiveFrom(const boost::system::error_code& error,
+                           size_t bytes_transferred);
+    void HandleSendTo(const SharedBuffer& buffer,
+                      const boost::system::error_code& error,
                       size_t bytes_transferred);
-    void handleTimeout(const boost::system::error_code& e);
-    void handleClose();
+    void HandleClose();
 
-    void handleSendComplete();
-    void handleReceivePacket(const SharedBuffer& data, size_t size, const boost::asio::ip::udp::endpoint& from);
+    void SendPacketAck(uint32_t seq, const UdpEndpoint& to);
+    bool SendNextPacket();
+    void HandleReceiveComplete(const SharedBuffer& buffer, size_t bytes_recvd,
+                               const UdpEndpoint& from);
+    void HandlePacketAck(InRequest& ireq);
+    void handleReceiveGroupPacket(InRequest& ireq, const UdpEndpoint& from);
+    void handleReceiveGroupPacketAck(InRequest& ireq, const UdpEndpoint& from);
 
-    bool destIsRecving(const boost::asio::ip::udp::endpoint& dest);
+    void Tick();
+    bool ProcessEvents();
+    void MainLoop();
 
-    GroupRecvTask* getRecvTask(uint16_t id, const boost::asio::ip::udp::endpoint& from);
-
-    struct SmallPacket
-    {
+    struct SmallPacket {
         OutRequest oreq;
-        boost::asio::ip::udp::endpoint to;
-        boost::posix_time::ptime end_time;
+        UdpEndpoint to;
+        TimePoint end_time;
     };
 
-    struct PendingPacket
-    {
+    struct PendingPacket {
         OutRequest oreq;
-        boost::asio::ip::udp::endpoint to;
-        boost::posix_time::ptime end_time;
-        boost::posix_time::ptime next_time;
+        UdpEndpoint to;
+        TimePoint end_time;
+        TimePoint next_time;
     };
 
-    boost::asio::io_context& io_context_;
-    boost::asio::ip::udp::socket socket_;
-    boost::asio::deadline_timer timer_;
+    struct Event {
+        enum {
+            kReceiveComplete = 1,
+            kSendComplete,
+            kSendNextPacket
+        };
 
+        explicit Event(int t) : type(t) {
+        }
+        Event(int t, const UdpEndpoint& ep, const SharedBuffer& sb, size_t sz)
+            : type(t), endpoint(ep), buffer(sb), size(sz) {
+        }
+
+        int type;
+        UdpEndpoint endpoint;
+        SharedBuffer buffer;
+        size_t size;
+    };
+
+    UdpSocket socket_;
+    std::thread* thread_;
+    bool running_;
     bool open_;
     bool closing_;
     bool alive_;
-    boost::asio::ip::udp::endpoint alive_endpoint_;
-    boost::posix_time::ptime last_alive_time_;
-    int64_t timer_frequency_;
+    UdpEndpoint alive_endpoint_;
+    TimePoint last_alive_time_;
+    TimePoint now_;
 
-    std::list<SmallPacket> small_packet_queue_;
+    std::list<SmallPacket> small_packets_;
     std::map<uint32_t, PendingPacket> pending_packets_;
-    std::list<GroupSendTask*> group_send_queue_;
-    std::list<GroupRecvTask*> active_group_recv_tasks_;
+    std::list<GroupSendTask*> inactive_group_send_tasks_;
+    std::list<GroupReceiveTask*> active_group_receive_tasks_;
     std::list<GroupSendTask*> active_group_send_tasks_;
 
     PacketRecord packet_record_;
     GroupRecord group_record_;
 
-    boost::mutex mutex_;
-    boost::asio::ip::udp::endpoint sender_endpoint_;
+    size_t available_send_buffer_size_;
+    UdpEndpoint sender_endpoint_;
     SharedBuffer buffer_;
+    std::mutex mutex_;
+    std::list<Event> events_;
+    std::mutex events_mutex_;
+    std::condition_variable events_cv_;
 
-    friend class GroupRecvTask;
+    friend class GroupReceiveTask;
     friend class GroupSendTask;
 };
 
-typedef boost::shared_ptr<Dgram> dgram_ptr;
+inline std::string Dgram::ToString(const UdpEndpoint& endpoint) {
+    std::string s;
+    s.append(endpoint.address().to_string());
+    std::stringstream ss;
+    ss << endpoint.port();
+    s.append(ss.str());
+    return std::move(s);
+}
+
+typedef boost::shared_ptr<Dgram> DgramPtr;
 
 } // udp
 } // network

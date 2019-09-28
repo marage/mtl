@@ -1,4 +1,4 @@
-#ifndef MTL_FRAMEWORK_CORE_CONNECTION_CONTROLLER_H
+﻿#ifndef MTL_FRAMEWORK_CORE_CONNECTION_CONTROLLER_H
 #define MTL_FRAMEWORK_CORE_CONNECTION_CONTROLLER_H
 #include <chrono>
 #include "mtl/network/tcp/connection.hpp"
@@ -8,37 +8,37 @@ namespace mtl {
 namespace framework {
 namespace core {
 
-class MTL_EXPORT ConnectionController : public LogicUnit<network::tcp::connection_ptr>
-{
+class MTL_EXPORT ConnectionController
+    : public LogicUnit<network::tcp::ConnectionPtr> {
 public:
-    ConnectionController(uint32_t id, network::tcp::connection_ptr c);
+  ConnectionController(uint32_t id, network::tcp::ConnectionPtr c);
 
-    uint16_t mainCommand() const { return main_command_; }
-    uint64_t accessCount() const { return access_count_; }
-    void setAccessCount(uint64_t count)
-    {
-        access_count_ = count;
-    }
-    bool isBusy() const { return connection_->isBusy(); }
-    const std::chrono::system_clock::time_point& when() const { return when_; }
-    TCPEndpoint remoteEndpoint() const
-    {
-        return connection_->remoteEndpoint();
-    }
-    void send(OutRequest& oreq) { connection_->send(oreq); }
-    void close() { connection_->close(); }
+  inline uint16_t main_command() const { return main_command_; }
+  inline uint64_t access_count() const { return access_count_; }
+  inline void set_access_count(uint64_t count) {
+    access_count_ = count;
+  }
+  inline bool IsBusy() const { return connection_->IsBusy(); }
+  inline const std::chrono::system_clock::time_point& when() const {
+    return when_;
+  }
+  inline TCPEndpoint RemoteEndpoint() const {
+    return connection_->RemoteEndpoint();
+  }
+  inline void Send(OutRequest& oreq) { connection_->Send(oreq); }
+  inline void Close() { connection_->Close(); }
 
 protected:
-    void setMainCommand(uint16_t cmd) { main_command_ = cmd; }
+  inline void set_main_command(uint16_t cmd) { main_command_ = cmd; }
 
 private:
-    void handleArrival(InRequest& ireq);
-    void handle_close(const boost::system::error_code& ec);
+  void HandleArrival(InRequest& ireq);
+  void HandleClose(const boost::system::error_code& ec);
 
-    uint16_t main_command_;
-    uint64_t access_count_;
-    network::tcp::connection_ptr connection_;
-    std::chrono::system_clock::time_point when_;
+  uint16_t main_command_;
+  uint64_t access_count_;
+  network::tcp::ConnectionPtr connection_;
+  std::chrono::system_clock::time_point when_;
 };
 
 } // core

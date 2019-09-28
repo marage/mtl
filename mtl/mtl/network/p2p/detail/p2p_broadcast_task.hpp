@@ -2,9 +2,9 @@
 #define MTL_NETWORK_P2P_BROADCAST_TASK_HPP
 #include <list>
 #include <boost/cstdint.hpp>
-#include <boost/asio/ip/udp.hpp>
 #include "mtl/network/out_request.hpp"
 #include "mtl/task/task.hpp"
+#include "mtl/network/protocol.hpp"
 
 namespace mtl {
 namespace network {
@@ -13,36 +13,34 @@ namespace p2p {
 class Client;
 class Server;
 
-class BroadcastNeighborsTask final : public Task
-{
+class BroadcastNeighborsTask : public Task {
 public:
-    BroadcastNeighborsTask(Client* c, const OutRequest& oreq, int timeout,
-                           const boost::asio::ip::udp::endpoint& from);
+  BroadcastNeighborsTask(Client* c, const OutRequest& oreq, int timeout,
+                         const UdpEndpoint& from);
 
 private:
-    Status processImpl();
+  State ProcessImpl() override;
 
-    Client* client_;
-    OutRequest request_;
-    boost::asio::ip::udp::endpoint from_;
-    int next_pos_;
+  Client* client_;
+  OutRequest request_;
+  UdpEndpoint from_;
+  int next_pos_;
 };
 
-class BroadcastClientsTask final : public Task
-{
+class BroadcastClientsTask : public Task {
 public:
-    BroadcastClientsTask(Server* s, const OutRequest& oreq, int timeout,
-                         const boost::asio::ip::udp::endpoint& from);
+  BroadcastClientsTask(Server* s, const OutRequest& oreq, int timeout,
+                       const UdpEndpoint& from);
 
 private:
-    void activateImpl();
-    Status processImpl();
+  void ActivateImpl() override;
+  State ProcessImpl() override;
 
-    Server* server_;
-    OutRequest request_;
-    boost::asio::ip::udp::endpoint from_;
-    std::list<boost::asio::ip::udp::endpoint> targets_;
-    int next_pos_;
+  Server* server_;
+  OutRequest request_;
+  UdpEndpoint from_;
+  std::list<UdpEndpoint> targets_;
+  int next_pos_;
 };
 
 } // p2p

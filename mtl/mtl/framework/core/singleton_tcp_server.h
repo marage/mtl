@@ -10,26 +10,22 @@ namespace core {
 template <typename ControllerFactory>
 class MTL_EXPORT SingletonTCPServer
     : public Singleton<SingletonTCPServer<ControllerFactory>>
-    , public TCPServer<ControllerFactory>
-{
+    , public TCPServer<ControllerFactory> {
 public:
-    typedef Singleton<SingletonTCPServer<ControllerFactory>> Base;
+  typedef Singleton<SingletonTCPServer<ControllerFactory>> Base;
 
-    explicit SingletonTCPServer(network::ContextPool& cp,
-                                ControllerFactory* controller_factory)
-        : TCPServer<ControllerFactory>(cp, controller_factory)
-    {
-    }
+  explicit SingletonTCPServer(network::IOServicePool& isp,
+                              ControllerFactory* controller_factory)
+    : TCPServer<ControllerFactory>(isp, controller_factory) {
+  }
 
-    static SingletonTCPServer<ControllerFactory>& getSingleton()
-    {
-        return *Base::ms_Singleton;
-    }
+  static SingletonTCPServer<ControllerFactory>& getSingleton() {
+    return *Base::ms_Singleton;
+  }
 
-    static SingletonTCPServer<ControllerFactory>* getSingletonPtr()
-    {
-        return Base::ms_Singleton;
-    }
+  static SingletonTCPServer<ControllerFactory>* getSingletonPtr() {
+    return Base::ms_Singleton;
+  }
 };
 
 } // core

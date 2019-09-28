@@ -10,124 +10,118 @@ namespace framework {
 namespace core {
 
 template <typename T>
-class LogicUnit : private boost::noncopyable
-{
+class LogicUnit : private boost::noncopyable {
 public:
-    typedef T Terminal;
+  typedef T Terminal;
 
-    enum ProcessType
-    {
-        PROCESS_ONCE,
-        PROCESS_LOOP,
-    };
+  enum ProcessType {
+    kOnce,
+    kLoop,
+  };
 
-    LogicUnit(uint32_t id, T terminal, int process_type);
-    virtual ~LogicUnit() {}
+  LogicUnit(uint32_t id, T terminal, int process_type);
+  virtual ~LogicUnit() {}
 
-    uint32_t id() const { return id_; }
+  inline uint32_t id() const { return id_; }
 
-    bool isActive() const { return active_; }
-    void setActive(bool active) { active_ = active; }
+  inline bool active() const { return active_; }
+  inline void set_active(bool active) { active_ = active; }
 
-    void process();
-    void quit() { running_ = false; }
+  void Process();
+  inline void Quit() { running_ = false; }
 
-    bool isBusy() const { return connection_.isBusy(); }
-    HostAddress localAddress() const { return connection_.localAddress(); }
-    void send(OutRequest& oreq)
-    {
-        connection_.send(oreq);
-    }
-    void sendTo(OutRequest& request, const UDPEndpoint& to)
-    {
-        connection_.sendTo(request, to);
-    }
+  inline bool IsBusy() const { return connection_.IsBusy(); }
+  inline HostAddress LocalAddress() const {
+    return connection_.LocalAddress();
+  }
+  inline void Send(OutRequest& oreq) {
+    connection_.Send(oreq);
+  }
+  inline void SendTo(OutRequest& request, const AsioUDPEndpoint& to) {
+    connection_.SendTo(request, to);
+  }
 
-    size_t requestCount() const { return requests_.size(); }
-    void pushRequest(InRequest& request);
+  inline size_t request_count() const { return requests_.size(); }
+  inline void PushRequest(InRequest& request) {
+    boost::shared_lock_guard<boost::shared_mutex> guard(mutex_);
+    requests_.push_back(request);
+  }
 
-    void registerHandler(uint32_t cmd, const RequestHandler& handler)
-    {
-        handlers_.insert(std::make_pair(cmd, handler));
-    }
-    void addTask(const task_ptr& t)
-    {
-        tasks_.add(t);
-    }
+  inline void RegisterHandler(uint32_t cmd, const RequestHandler& handler) {
+    handlers_.insert(std::make_pair(cmd, handler));
+  }
+  inline void AppendTask(const TaskPtr& t) {
+    tasks_.Append(t);
+  }
 
-    static uint32_t nextSequence();
+  virtual void OnConnected() {}
+
+  static uint32_t NextSequence();
 
 private:
-    virtual void handleRequest(InRequest& /*ireq*/) {}
+  virtual void HandleRequest(InRequest& /*ireq*/) {}
 
-    uint32_t id_;
-    Connection<T> connection_;
-    int process_type_;
-    bool running_;
-    bool active_;
-    std::list<InRequest> requests_;
-    boost::shared_mutex mutex_;
-    RequestHandlerMap handlers_;
-    TaskGroup tasks_;
+  uint32_t id_;
+  Connection<T> connection_;
+  int process_type_;
+  bool running_;
+  bool active_;
+  std::list<InRequest> requests_;
+  boost::shared_mutex mutex_;
+  RequestHandlerMap handlers_;
+  TaskGroup tasks_;
 };
 
 template <typename T>
 LogicUnit<T>::LogicUnit(uint32_t id, T terminal, int process_type)
-    : id_(id), connection_(terminal), process_type_(process_type), running_(true)
-    , active_(true), tasks_(0, true, 0)
-{
+  : id_(id), connection_(terminal), process_type_(process_type)
+  , running_(true), active_(true), tasks_(0, true, 0) {
 }
 
 template <typename T>
-void LogicUnit<T>::process()
-{
-    bool found;
-    InRequest ireq;
+void LogicUnit<T>::Process() {
+  bool found;
+  InRequest ireq;
 
-    do {
-        // when active
-        if (active_) {
-            // process network requests
-            {
-                boost::shared_lock_guard<boost::shared_mutex> guard(mutex_);
-                found = !requests_.empty();
-                if (found) {
-                    ireq = requests_.front();
-                    requests_.pop_front();
-                }
-            }
-            if (found) {
-                uint32_t cmd = ireq.readCommand();
-                auto it = handlers_.find(cmd);
-                if (it != handlers_.end()) {
-                    it->second(ireq);
-                } else {
-                    handleRequest(ireq);
-                }
-            }
-            // process tasks
-            tasks_.process();
+  do {
+    // when active
+    if (active_) {
+      // process network requests
+      {
+        boost::shared_lock_guard<boost::shared_mutex> guard(mutex_);
+        found = !requests_.empty();
+        if (found) {
+          ireq = requests_.front();
+          requests_.pop_front();
         }
-    } while (running_ && process_type_ == PROCESS_LOOP);
+      }
+      if (found) {
+        uint32_t cmd = ireq.readCommand();
+        auto it = handlers_.find(cmd);
+        if (it != handlers_.end()) {
+          it->second(ireq);
+        } else {
+          HandleRequest(ireq);
+        }
+      }
+      // process tasks
+      if (tasks_.IsInactive() || tasks_.IsCompleted()) {
+        tasks_.Activate();
+      }
+      tasks_.Process();
+    }
+  } while (running_ && process_type_ == kLoop);
 }
 
 template <typename T>
-void LogicUnit<T>::pushRequest(InRequest& request)
-{
-    boost::shared_lock_guard<boost::shared_mutex> guard(mutex_);
-    requests_.push_back(request);
+uint32_t LogicUnit<T>::NextSequence() {
+  static uint32_t next = 0;
+  ++next;
+  next = next % 0xffffffff;
+  return next;
 }
 
-template <typename T>
-uint32_t LogicUnit<T>::nextSequence()
-{
-    static uint32_t next = 0;
-    ++next;
-    next = next % 0xffffffff;
-    return next;
-}
-
-typedef LogicUnit<network::tcp::client_ptr> ClientLogicUnit;
+typedef LogicUnit<network::tcp::ClientPtr> ClientLogicUnit;
 
 } // core
 } // framework

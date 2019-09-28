@@ -1,7 +1,8 @@
-#ifndef MTL_NETWORK_P2P_SERVER_H
+﻿#ifndef MTL_NETWORK_P2P_SERVER_H
 #define MTL_NETWORK_P2P_SERVER_H
 #include <set>
 #include <boost/shared_ptr.hpp>
+#include <boost/asio/deadline_timer.hpp>
 #include "client.hpp"
 #include "mtl/network/p2p/detail/graph.hpp"
 
@@ -9,65 +10,62 @@ namespace mtl {
 namespace network {
 namespace p2p {
 
-class MTL_EXPORT Server : public Client
-{
+class MTL_EXPORT Server : public Client {
 public:
-    Server(const udp::dgram_ptr& dgram, const std::string& token);
+  Server(const udp::DgramPtr& dgram, const std::string& token);
 
-    bool open(const boost::asio::ip::udp::endpoint& endpoint, uint32_t frequency) override;
-    void close() override;
+  bool Open(const UdpEndpoint& endpoint) override;
+  void Close() override;
 
-    bool isClient(const boost::asio::ip::udp::endpoint& endpoint) const;
+  inline bool IsClient(const UdpEndpoint& endpoint) const;
 
-    void broadcast(OutRequest& oreq, int32_t timeout = 5000);
+  void Broadcast(OutRequest& oreq, int32_t timeout = 5000);
 
 private:
-    void handlePacketArrival(InRequest& ireq, const boost::asio::ip::udp::endpoint& from,
-                             int32_t milliseconds);
-    void handleGroupHeadArrival(InRequest& ireq, const boost::asio::ip::udp::endpoint& from,
-                                bool* passed);
+  void HandlePacketArrival(InRequest& ireq, const UdpEndpoint& from,
+                           int32_t milliseconds);
+  void HandleGroupHeadArrival(InRequest& ireq, const UdpEndpoint& from,
+                              bool* passed);
 
-    void handleJoinRequest(InRequest& ireq, const boost::asio::ip::udp::endpoint& from);
-    void handleLeaveRequest(InRequest& ireq, const boost::asio::ip::udp::endpoint& from);
-    void handleFailedReportRequest(InRequest& ireq, const boost::asio::ip::udp::endpoint& from);
-    void handleCheckAliveTimeout(const boost::system::error_code& e);
-    void handleAlive(const boost::asio::ip::udp::endpoint& from);
-    void handleBroadcastData(InRequest& ireq, const boost::asio::ip::udp::endpoint& from,
-                             int32_t milliseconds);
+  void HandleJoinRequest(InRequest& ireq, const UdpEndpoint& from);
+  void HandleLeaveRequest(InRequest& ireq, const UdpEndpoint& from);
+  void HandleFailedReportRequest(InRequest& ireq, const UdpEndpoint& from);
+  void HandleCheckAliveTimeout(const boost::system::error_code& e);
+  void HandleAlive(const UdpEndpoint& from);
+  void HandleBroadcastData(InRequest& ireq, const UdpEndpoint& from,
+                           int32_t milliseconds);
 
-    SequenceRange getUsableSequenceRange(uint64_t size);
+  SequenceRange GetUsableSequenceRange(uint64_t size);
 
-    struct NearVertex
-    {
-        GraphVertex* vertex;
-        int weight;
-    };
-    std::list<NearVertex> nearMembers(const std::string& center, uint32_t max_count);
-    void removeMember(const std::string& name);
-    void removeMember(const GraphVertex* v);
-    void replaceNeighbor(const GraphVertex* v, const boost::asio::ip::udp::endpoint& neighbor);
-    bool isValidNeighbor(const GraphVertex* v);
-    void bfsMembers(const boost::asio::ip::udp::endpoint& start,
-                    std::list<boost::asio::ip::udp::endpoint>& targets);
+  struct NearVertex {
+    GraphVertex* vertex;
+    int weight;
+  };
+  std::list<NearVertex> NearMembers(const std::string& center,
+                                    uint32_t max_count);
+  void RemoveMember(const std::string& name);
+  void RemoveMember(const GraphVertex* v);
+  void ReplaceNeighbor(const GraphVertex* v, const UdpEndpoint& neighbor);
+  bool IsValidNeighbor(const GraphVertex* v);
+  void BfsMembers(const UdpEndpoint& start, std::list<UdpEndpoint>& targets);
 
-    std::string token_;
-    Graph graph_;
+  std::string token_;
+  Graph graph_;
 
-    std::list<SequenceRange> usable_sequences_;
-    SequenceRange members_seq_range_;
-    uint64_t next_member_seq_;
+  std::list<SequenceRange> usable_sequences_;
+  SequenceRange members_seq_range_;
+  uint64_t next_member_seq_;
 
-    boost::asio::deadline_timer check_alive_timer_;
+  boost::asio::deadline_timer check_alive_timer_;
 
-    friend class BroadcastClientsTask;
+  friend class BroadcastClientsTask;
 };
 
-typedef boost::shared_ptr<Server> server_ptr;
-
-inline bool Server::isClient(const boost::asio::ip::udp::endpoint& endpoint) const
-{
-    return graph_.containsVertex(toString(endpoint));
+inline bool Server::IsClient(const UdpEndpoint& endpoint) const {
+  return graph_.ContainsVertex(udp::Dgram::ToString(endpoint));
 }
+
+typedef boost::shared_ptr<Server> ServerPtr;
 
 } // namespace p2p
 } // namespace network

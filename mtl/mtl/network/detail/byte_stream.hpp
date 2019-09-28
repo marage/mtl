@@ -7,45 +7,42 @@
 namespace mtl {
 namespace network {
 
-class ByteStream : public boost::noncopyable
-{
+class ByteStream : public boost::noncopyable {
 public:
-    ByteStream() {}
+  ByteStream() {}
 
-    bool empty() const { return pieces_.empty(); }
-    size_t length() const;
+  inline bool Empty() const { return pieces_.empty(); }
 
-    size_t read(void* buf, size_t count);
-    size_t peek(void* buf, size_t count);
+  size_t Length() const;
 
-    void write(const SharedBuffer& buf, size_t data_size);
-    void clear()
-    {
-        pieces_.clear();
-    }
+  size_t Read(void* buf, size_t count);
+  size_t Peek(void* buf, size_t count);
+
+  inline void Write(const SharedBuffer& buf, size_t data_size);
+  inline void Clear() {
+    pieces_.clear();
+  }
 
 private:
-    struct Piece
-    {
-        Piece(const SharedBuffer& buf, size_t data_size);
+  struct Piece {
+    Piece(const SharedBuffer& buf, size_t data_size);
 
-        bool empty() const { return (cursor >= size); }
-        size_t length() const { return (size - cursor); }
+    inline bool Empty() const { return (cursor >= size); }
+    inline size_t Length() const { return (size - cursor); }
 
-        size_t read(void* buf, size_t count);
-        size_t peek(void* buf, size_t count);
+    size_t Read(void* buf, size_t count);
+    size_t Peek(void* buf, size_t count);
 
-        SharedBuffer block;
-        size_t cursor;
-        size_t size;
-    };
+    SharedBuffer block;
+    size_t cursor;
+    size_t size;
+  };
 
-    std::list<Piece> pieces_;
+  std::list<Piece> pieces_;
 };
 
-inline void ByteStream::write(const SharedBuffer& buf, size_t data_size)
-{
-    pieces_.push_back(Piece(buf, data_size));
+inline void ByteStream::Write(const SharedBuffer& buf, size_t data_size) {
+  pieces_.push_back(Piece(buf, data_size));
 }
 
 } // namespace network

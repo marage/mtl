@@ -1,4 +1,4 @@
-#ifndef MTL_NETWORK_OUT_STREAM_HPP
+﻿#ifndef MTL_NETWORK_OUT_STREAM_HPP
 #define MTL_NETWORK_OUT_STREAM_HPP
 #include <boost/cstdint.hpp>
 #include <string>
@@ -8,20 +8,15 @@
 namespace mtl {
 namespace network {
 
-class MTL_EXPORT OutStream
-{
+class MTL_EXPORT OutStream {
 public:
     explicit OutStream(uint16_t begin = 0);
-    OutStream(const SharedBuffer& buffer, uint16_t size,
-              uint16_t begin);
+    OutStream(const SharedBuffer& buffer, uint16_t size, uint16_t begin);
 
-    const SharedBuffer& buffer() const { return buffer_; }
-    uint16_t size() const
-    {
-        return static_cast<uint16_t>((cursor_ - buffer_.get()));
-    }
-    uint16_t begin() const { return begin_; }
-    uint16_t left() const { return (size_ - size()); }
+    inline const SharedBuffer& buffer() const;
+    inline uint16_t begin() const;
+    inline uint16_t size() const;
+    inline uint16_t left() const;
 
     uint16_t skip(uint16_t offset, int origin);
     void resize(uint16_t sz);
@@ -40,6 +35,22 @@ private:
     uint16_t begin_;
     char* cursor_;
 };
+
+inline const SharedBuffer& OutStream::buffer() const {
+    return buffer_;
+}
+
+inline uint16_t OutStream::begin() const {
+    return begin_;
+}
+
+inline uint16_t OutStream::size() const {
+    return static_cast<uint16_t>((cursor_ - buffer_.get()));
+}
+
+inline uint16_t OutStream::left() const {
+    return (size_ - size());
+}
 
 } // namespace network
 } // namespace mtl
