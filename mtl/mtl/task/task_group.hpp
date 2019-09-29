@@ -5,27 +5,28 @@
 
 namespace mtl {
 
-class MTL_EXPORT TaskGroup : public Task {
+class MTL_EXPORT TaskGroup : public Task
+{
 public:
-  explicit TaskGroup(int type = 0, bool parallel = false,
-                     int timeout = 10000);
-  ~TaskGroup() override;
+    explicit TaskGroup(int type = 0, bool parallel = false,
+                       int timeout = 10000);
+    ~TaskGroup() override;
 
-  inline int count() const { return static_cast<int>(tasks_.size()); }
-  TaskPtr Find(int type) const;
-  void Append(const TaskPtr& t);
-  void Remove(const TaskPtr& t);
-  void RemoveFirst();
-  void RemoveAll();
+    int count() const { return static_cast<int>(tasks_.size()); }
+    TaskPtr find(int type) const;
+    void append(const TaskPtr& t);
+    void remove(const TaskPtr& t);
+    void removeFirst();
+    void removeAll();
 
-  bool HasActiveSubTasks() const;
+    bool hasActiveSubTasks() const;
 
 private:
-  State ProcessImpl() override;
+    State processImpl() final;
 
-  typedef std::list<TaskPtr> TaskList;
-  TaskList tasks_;
-  bool parallel_;
+    typedef std::list<TaskPtr> TaskList;
+    TaskList tasks_;
+    bool parallel_;
 };
 
 } // namespace mtl

@@ -13,7 +13,8 @@ namespace mtl {
 namespace network {
 
 class MTL_EXPORT SingletonBufferPool
-        : public Singleton<SingletonBufferPool>, private boost::noncopyable {
+        : public Singleton<SingletonBufferPool>, private boost::noncopyable
+{
 public:
     SingletonBufferPool();
     ~SingletonBufferPool();
@@ -21,11 +22,11 @@ public:
     static SingletonBufferPool& getSingleton();
     static SingletonBufferPool* getSingletonPtr();
 
-    bool IsFrom(void* p);
-    SharedBuffer Malloc(int size);
-    void Free(void* p);
+    bool isFrom(void* p);
+    SharedBuffer allocBuffer(unsigned int size);
+    void freeBuffer(void* p);
 
-    void ReleaseMemory();
+    void releaseMemory();
 
 private:
     boost::pool<> fixed_pool_;

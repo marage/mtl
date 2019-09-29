@@ -9,16 +9,17 @@ namespace network {
 namespace p2p {
 
 // a packet filter strategy
-class GroupPacketFilter {
+class GroupPacketFilter
+{
 public:
-  GroupPacketFilter() = default;
+    GroupPacketFilter() = default;
 
-  bool Passed(uint64_t seq);
-  void Remove(uint64_t min_seq, uint64_t max_seq);
+    bool isPassed(uint64_t seq);
+    void remove(uint64_t min_seq, uint64_t max_seq);
 
 private:
-  std::unordered_set<uint64_t> seq_set_;
-  std::list<uint64_t> seq_list_;
+    std::unordered_set<uint64_t> seq_set_;
+    std::list<uint64_t> seq_list_;
 };
 
 } // p2p

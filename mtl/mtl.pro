@@ -29,6 +29,8 @@ win32 {
 
 SOURCES += \
     mtl/core/detail/impl/dllmain.cpp \
+    mtl/network/udp/detail/impl/dgram_receive_group_task.cpp \
+    mtl/network/udp/detail/impl/dgram_send_group_task.cpp \
     mtl/task/detail/impl/task_group.cpp \
     mtl/encrypt/detail/impl/rc4.cpp \
     mtl/network/detail/impl/byte_stream.cpp \
@@ -39,8 +41,6 @@ SOURCES += \
     mtl/network/p2p/detail/impl/p2p_group_packet_filter.cpp \
     mtl/network/p2p/detail/impl/p2p_server.cpp \
     mtl/network/udp/detail/impl/dgram.cpp \
-    mtl/network/udp/detail/impl/dgram_group_recv_task.cpp \
-    mtl/network/udp/detail/impl/dgram_group_send_task.cpp \
     mtl/network/detail/impl/floating_buffer_pool.cpp \
     mtl/network/detail/impl/context_pool.cpp \
     mtl/network/detail/impl/out_request.cpp \
@@ -61,6 +61,8 @@ SOURCES += \
 HEADERS += \
     mtl/mtl.hpp \
     mtl/encrypt/rc4.hpp \
+    mtl/network/udp/detail/dgram_receive_group_task.hpp \
+    mtl/network/udp/detail/dgram_send_group_task.hpp \
     mtl/singleton/singleton.hpp \
     mtl/task/task.hpp \
     mtl/task/task_group.hpp \
@@ -72,7 +74,6 @@ HEADERS += \
     mtl/network/shared_buffer.hpp \
     mtl/network/detail/byte_order.hpp \
     mtl/network/detail/byte_stream.hpp \
-    mtl/network/detail/packet_field.hpp \
     mtl/network/detail/floating_buffer_pool.hpp \
     mtl/network/p2p/client.hpp \
     mtl/network/p2p/server.hpp \
@@ -80,8 +81,6 @@ HEADERS += \
     mtl/network/p2p/detail/graph_relationships.hpp \
     mtl/network/p2p/detail/p2p_group_packet_filter.hpp \
     mtl/network/udp/dgram.hpp \
-    mtl/network/udp/detail/dgram_group_recv_task.hpp \
-    mtl/network/udp/detail/dgram_group_send_task.hpp \
     mtl/network/tcp/client.hpp \
     mtl/network/tcp/connection.hpp \
     mtl/network/tcp/server.hpp \

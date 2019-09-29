@@ -15,7 +15,7 @@
 #include "mtl/network/in_request.hpp"
 
 #ifdef _MSC_VER
-#include <Ws2tcpip.h>
+#include <WS2tcpip.h>
 #pragma warning(push)
 #pragma warning(disable: 4996)
 #endif
@@ -33,13 +33,8 @@ namespace mtl {
 namespace framework {
 namespace core {
 
-using InRequest = mtl::network::InRequest;
-using OutRequest = mtl::network::OutRequest;
-using DateTime = mtl::DateTime;
-using RequestHandler = std::function<void(InRequest&)>;
+using RequestHandler = std::function<void(network::InRequest&)>;
 using RequestHandlerMap = std::map<uint32_t, RequestHandler>;
-using AsioUDPEndpoint = mtl::network::UdpEndpoint;
-using TCPEndpoint = mtl::network::TcpEndpoint;
 
 } // core
 } // framework

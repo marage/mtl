@@ -22,13 +22,14 @@ class InRequest;
 namespace udp {
 
 /// forward classes
-class GroupReceiveTask;
-class GroupSendTask;
+class ReceiveGroupTask;
+class SendGroupTask;
 
 /// Not support thread
 class MTL_EXPORT Dgram
         : public boost::enable_shared_from_this<Dgram>
-        , private boost::noncopyable {
+        , private boost::noncopyable
+{
 public:
     /// signals
     boost::signals2::signal<void(const OutRequest&, const UdpEndpoint&, int32_t)> sent_signal;
@@ -38,74 +39,80 @@ public:
     boost::signals2::signal<void(InRequest&, const UdpEndpoint&, bool*)> group_head_arrival_signal;
     boost::signals2::signal<void()> tick_signal;
 
-    explicit Dgram(boost::asio::io_context& io_context);
+    explicit Dgram(boost::asio::io_context& context);
     ~Dgram();
 
     bool open(const UdpEndpoint& endpoint);
     void close();
 
-    boost::asio::io_service& GetIOService();
-    UdpEndpoint LocalEndpoint() const;
-    bool IsBusy();
-    bool SendTo(const OutRequest& oreq, const UdpEndpoint& to,
+    boost::asio::io_context& context() { return context_; }
+    UdpEndpoint localEndpoint() const;
+    bool isBusy();
+    bool sendTo(const OutRequest& oreq, const UdpEndpoint& to,
                 uint32_t timeout = 5000);
-    void KeepAlive(const UdpEndpoint& to, bool alive = true);
-    void ClearPackets(const UdpEndpoint& to);
-    void ClearPackets();
+    void keepAlive(const UdpEndpoint& to, bool alive = true);
+    void clearPackets(const UdpEndpoint& to);
+    void clearPackets();
 
-    static uint32_t NextSequence();
-    inline static std::string ToString(const UdpEndpoint& endpoint);
+    static uint32_t nextSequence();
+    static std::string toString(const UdpEndpoint& endpoint);
 
 private:
-    bool DestIsReceiving(const UdpEndpoint& dest) const;
-    GroupReceiveTask* GetReceiveTask(uint16_t id, const UdpEndpoint& from) const;
+    bool destIsReceiving(const UdpEndpoint& dest) const;
+    ReceiveGroupTask* getReceiveGroupTask(uint16_t id, const UdpEndpoint& from) const;
 
-    void AsyncReceiveFrom();
-    void AsyncSendTo(OutRequest& oreq, const UdpEndpoint& to, uint32_t timeout);
+    void asyncReceiveFrom();
+    void asyncSendTo(OutRequest& oreq, const UdpEndpoint& to, uint32_t timeout);
 
-    void HandleReceiveFrom(const boost::system::error_code& error,
+    void handleReceiveFrom(const boost::system::error_code& error,
                            size_t bytes_transferred);
-    void HandleSendTo(const SharedBuffer& buffer,
+    void handleSendTo(const SharedBuffer& buffer,
                       const boost::system::error_code& error,
                       size_t bytes_transferred);
-    void HandleClose();
+    void handleClose();
 
-    void SendPacketAck(uint32_t seq, const UdpEndpoint& to);
-    bool SendNextPacket();
-    void HandleReceiveComplete(const SharedBuffer& buffer, size_t bytes_recvd,
+    void sendPacketAck(uint32_t seq, const UdpEndpoint& to);
+    bool sendNextPacket();
+    void handleReceiveComplete(const SharedBuffer& buffer, size_t bytes_recvd,
                                const UdpEndpoint& from);
-    void HandlePacketAck(InRequest& ireq);
+    void handlePacketAck(InRequest& ireq);
     void handleReceiveGroupPacket(InRequest& ireq, const UdpEndpoint& from);
     void handleReceiveGroupPacketAck(InRequest& ireq, const UdpEndpoint& from);
 
-    void Tick();
-    bool ProcessEvents();
-    void MainLoop();
+    void tick();
+    bool processEvents();
+    void mainLoop();
 
-    struct SmallPacket {
+    struct SmallPacket
+    {
         OutRequest oreq;
         UdpEndpoint to;
-        TimePoint end_time;
+        std::chrono::system_clock::time_point end_time;
     };
 
-    struct PendingPacket {
+    struct PendingPacket
+    {
         OutRequest oreq;
         UdpEndpoint to;
-        TimePoint end_time;
-        TimePoint next_time;
+        std::chrono::system_clock::time_point end_time;
+        std::chrono::system_clock::time_point next_time;
     };
 
-    struct Event {
-        enum {
+    struct Event
+    {
+        enum
+        {
             kReceiveComplete = 1,
             kSendComplete,
             kSendNextPacket
         };
 
-        explicit Event(int t) : type(t) {
+        explicit Event(int t) : type(t)
+        {
         }
         Event(int t, const UdpEndpoint& ep, const SharedBuffer& sb, size_t sz)
-            : type(t), endpoint(ep), buffer(sb), size(sz) {
+            : type(t), endpoint(ep), buffer(sb), size(sz)
+        {
         }
 
         int type;
@@ -114,21 +121,22 @@ private:
         size_t size;
     };
 
-    UdpSocket socket_;
+    boost::asio::io_context& context_;
+    boost::asio::ip::udp::socket socket_;
     std::thread* thread_;
     bool running_;
     bool open_;
     bool closing_;
     bool alive_;
     UdpEndpoint alive_endpoint_;
-    TimePoint last_alive_time_;
-    TimePoint now_;
+    std::chrono::system_clock::time_point last_alive_time_;
+    std::chrono::system_clock::time_point now_;
 
     std::list<SmallPacket> small_packets_;
     std::map<uint32_t, PendingPacket> pending_packets_;
-    std::list<GroupSendTask*> inactive_group_send_tasks_;
-    std::list<GroupReceiveTask*> active_group_receive_tasks_;
-    std::list<GroupSendTask*> active_group_send_tasks_;
+    std::list<SendGroupTask*> inactive_send_group_tasks_;
+    std::list<ReceiveGroupTask*> active_receive_group_tasks_;
+    std::list<SendGroupTask*> active_send_group_tasks_;
 
     PacketRecord packet_record_;
     GroupRecord group_record_;
@@ -141,17 +149,18 @@ private:
     std::mutex events_mutex_;
     std::condition_variable events_cv_;
 
-    friend class GroupReceiveTask;
-    friend class GroupSendTask;
+    friend class ReceiveGroupTask;
+    friend class SendGroupTask;
 };
 
-inline std::string Dgram::ToString(const UdpEndpoint& endpoint) {
+inline std::string Dgram::toString(const UdpEndpoint& endpoint)
+{
     std::string s;
     s.append(endpoint.address().to_string());
     std::stringstream ss;
     ss << endpoint.port();
     s.append(ss.str());
-    return std::move(s);
+    return s;
 }
 
 typedef boost::shared_ptr<Dgram> DgramPtr;

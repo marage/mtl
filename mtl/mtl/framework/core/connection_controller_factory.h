@@ -8,15 +8,16 @@ namespace framework {
 namespace core {
 
 template <typename T>
-class ConnectionControllerFactory {
+class ConnectionControllerFactory
+{
 public:
-  typedef T Controller;
-  typedef boost::shared_ptr<T> ControllerPtr;
+    typedef T Controller;
+    typedef boost::shared_ptr<T> ControllerPtr;
 
-  ControllerPtr CreateController(uint64_t id,
-                                 network::tcp::ConnectionPtr c) {
-    return ControllerPtr(new T(id, c));
-  }
+    ControllerPtr createController(uint64_t id,
+                                   network::tcp::ConnectionPtr c) {
+        return ControllerPtr(new T(id, c));
+    }
 };
 
 } // core

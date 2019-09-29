@@ -14,7 +14,7 @@ public:
                        int timeout = 10000);
 
 protected:
-  State ProcessImpl() override;
+  State processImpl() override;
 
 private:
   network::tcp::ClientPtr client_;

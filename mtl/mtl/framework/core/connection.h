@@ -13,93 +13,107 @@ namespace core {
 template <typename T>
 class Connection {
 public:
-  typedef T Terminal;
+    typedef T Terminal;
 
-  explicit Connection(Terminal t) : t_(t) {
-  }
+    explicit Connection(Terminal t) : t_(t)
+    {
+    }
 
-  inline Terminal terminal() const { return t_; }
-  inline bool IsConnected() const { return false; }
-  inline bool IsBusy() const { return true; }
-  inline HostAddress LocalAddress() const { return t_->localEndpoint(); }
-  inline void Send(OutRequest& oreq) {
-    t_->send(oreq);
-  }
+    Terminal terminal() const { return t_; }
+    bool isConnected() const { return false; }
+    bool isBusy() const { return true; }
+    HostAddress localAddress() const { return t_->localEndpoint(); }
+    void send(network::OutRequest& oreq)
+    {
+        t_->send(oreq);
+    }
 
-  inline void SendTo(OutRequest& /*request*/, const AsioUDPEndpoint& /*to*/) {}
+    void sendTo(network::OutRequest& /*request*/, const network::UdpEndpoint& /*to*/) {}
 
 private:
-  Terminal t_;
+    Terminal t_;
 };
 
 template <>
-class Connection<network::tcp::ConnectionPtr> {
+class Connection<network::tcp::ConnectionPtr>
+{
 public:
-  typedef network::tcp::ConnectionPtr Terminal;
+    typedef network::tcp::ConnectionPtr Terminal;
 
-  explicit Connection(Terminal terminal) : t_(terminal) {
-  }
+    explicit Connection(Terminal terminal) : t_(terminal)
+    {
+    }
 
-  inline Terminal terminal() const { return t_; }
-  inline bool IsConnected() const { return true; }
-  inline bool IsBusy() const { return t_->IsBusy(); }
-  inline HostAddress LocalAddress() const {
-    return HostAddress(t_->LocalEndpoint());
-  }
-  inline void Send(OutRequest& oreq) {
-    t_->Send(oreq);
-  }
+    Terminal terminal() const { return t_; }
+    bool isConnected() const { return true; }
+    bool isBusy() const { return t_->isBusy(); }
+    HostAddress localAddress() const
+    {
+        return HostAddress(t_->localEndpoint());
+    }
+    void send(network::OutRequest& oreq)
+    {
+        t_->send(oreq);
+    }
 
-  inline void SendTo(OutRequest& /*oreq*/, const AsioUDPEndpoint& /*to*/) {}
+    void sendTo(network::OutRequest& /*oreq*/, const network::UdpEndpoint& /*to*/) {}
 
 private:
-  Terminal t_;
+    Terminal t_;
 };
 
 template <>
-class Connection<network::tcp::ClientPtr> {
+class Connection<network::tcp::ClientPtr>
+{
 public:
-  typedef network::tcp::ClientPtr Terminal;
+    typedef network::tcp::ClientPtr Terminal;
 
-  explicit Connection(Terminal terminal) : t_(terminal) {
-  }
+    explicit Connection(Terminal terminal) : t_(terminal)
+    {
+    }
 
-  inline Terminal terminal() const { return t_; }
-  inline bool IsConnected() const { return t_->IsConnected(); }
-  inline bool IsBusy() const { return t_->IsBusy(); }
-  inline HostAddress LocalAddress() const {
-    return HostAddress(t_->LocalEndpoint());
-  }
-  inline void Send(OutRequest& oreq) {
-    t_->Send(oreq);
-  }
-  inline void SendTo(OutRequest& /*oreq*/, const AsioUDPEndpoint& /*to*/) {}
+    Terminal terminal() const { return t_; }
+    bool isConnected() const { return t_->isConnected(); }
+    bool isBusy() const { return t_->isBusy(); }
+    HostAddress localAddress() const
+    {
+        return HostAddress(t_->localEndpoint());
+    }
+    void send(network::OutRequest& oreq)
+    {
+        t_->send(oreq);
+    }
+    void sendTo(network::OutRequest& /*oreq*/, const network::UdpEndpoint& /*to*/) {}
 
 private:
-  Terminal t_;
+    Terminal t_;
 };
 
 template <>
-class Connection<network::udp::DgramPtr> {
+class Connection<network::udp::DgramPtr>
+{
 public:
-  typedef network::udp::DgramPtr Terminal;
+    typedef network::udp::DgramPtr Terminal;
 
-  explicit Connection(Terminal terminal) : t_(terminal) {
-  }
+    explicit Connection(Terminal terminal) : t_(terminal)
+    {
+    }
 
-  inline Terminal terminal() const { return t_; }
-  inline bool IsConnected() const { return true; }
-  inline bool IsBusy() const { return false; }
-  inline HostAddress LocalAddress() const {
-    return HostAddress(t_->LocalEndpoint());
-  }
-  inline void Send(OutRequest& /*oreq*/) {}
-  inline void SendTo(OutRequest& oreq, const AsioUDPEndpoint& to) {
-    t_->SendTo(oreq, to);
-  }
+    Terminal terminal() const { return t_; }
+    bool isConnected() const { return true; }
+    bool isBusy() const { return false; }
+    HostAddress localAddress() const
+    {
+        return HostAddress(t_->localEndpoint());
+    }
+    void send(network::OutRequest& /*oreq*/) {}
+    void sendTo(network::OutRequest& oreq, const network::UdpEndpoint& to)
+    {
+        t_->sendTo(oreq, to);
+    }
 
 private:
-  Terminal t_;
+    Terminal t_;
 };
 
 } // core

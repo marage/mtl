@@ -6,19 +6,20 @@
 namespace mtl {
 namespace network {
 
-class MTL_EXPORT InStream {
+class MTL_EXPORT InStream
+{
 public:
     InStream();
     InStream(const SharedBuffer& buffer, uint16_t size, uint16_t begin = 0);
 
-    inline const SharedBuffer& buffer() const { return buffer_; }
-    inline uint16_t size() const { return size_; }
-    inline uint16_t begin() const { return begin_; }
-    inline uint16_t cursor() const { return cursor_; }
+    const SharedBuffer& buffer() const { return buffer_; }
+    uint16_t size() const { return size_; }
+    uint16_t begin() const { return begin_; }
+    uint16_t cursor() const { return cursor_; }
 
-    inline const char* data() const { return (buffer_.get() + cursor_); }
-    inline uint16_t left() const { return (size_ - cursor_); }
-    inline bool eof() const { return cursor_ >= size_; }
+    const char* data() const { return (buffer_.get() + cursor_); }
+    uint16_t left() const { return (size_ - cursor_); }
+    bool eof() const { return cursor_ >= size_; }
 
     uint16_t skip(uint16_t offset, int origin);
     void clear();

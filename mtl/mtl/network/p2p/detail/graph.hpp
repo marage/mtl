@@ -4,7 +4,6 @@
 #include <map>
 #include <set>
 #include <list>
-#include <boost/asio/ip/udp.hpp>
 #include "mtl/network/p2p/protocol.hpp"
 #include "graph_relationships.hpp"
 
@@ -12,149 +11,171 @@ namespace mtl {
 namespace network {
 namespace p2p {
 
-class GraphVertex {
+class GraphVertex
+{
 public:
-  inline GraphVertex(uint32_t id, uint8_t r,
-                     const UdpEndpoint& ep,
-                     const mtl::network::p2p::SequenceRange& sr)
-      : id_(id), role_(r), address_(ep), seq_range_(sr)
-      , alive_timeout_times_(0) {
-  }
+    inline GraphVertex(uint32_t id, uint8_t r,
+                       const UdpEndpoint& ep,
+                       const mtl::network::p2p::SequenceRange& sr)
+        : id_(id), role_(r), address_(ep), seq_range_(sr)
+        , alive_timeout_times_(0)
+    {
+    }
 
-  inline uint32_t id() const;
-  inline uint8_t role() const;
-  inline const UdpEndpoint& address() const;
-  inline const SequenceRange& seq_range() const;
-  inline int alive_timeout_times() const;
-  inline void set_alive_timeout_times(int times);
-  inline int IncAliveTimeoutTimes();
+    uint32_t id() const;
+    uint8_t role() const;
+    const UdpEndpoint& address() const;
+    const SequenceRange& seqRange() const;
+    int aliveTimeoutTimes() const;
+    void setAliveTimeoutTimes(int times);
+    int incAliveTimeoutTimes();
 
 private:
-  uint32_t id_;
-  uint8_t role_;
-  UdpEndpoint address_;
-  SequenceRange seq_range_;
-  int alive_timeout_times_;
+    uint32_t id_;
+    uint8_t role_;
+    UdpEndpoint address_;
+    SequenceRange seq_range_;
+    int alive_timeout_times_;
 };
 
-inline uint32_t GraphVertex::id() const {
-  return id_;
+inline uint32_t GraphVertex::id() const
+{
+    return id_;
 }
 
-inline uint8_t GraphVertex::role() const {
-  return role_;
+inline uint8_t GraphVertex::role() const
+{
+    return role_;
 }
 
-inline const UdpEndpoint& GraphVertex::address() const {
-  return address_;
+inline const UdpEndpoint& GraphVertex::address() const
+{
+    return address_;
 }
 
-inline const SequenceRange& GraphVertex::seq_range() const {
-  return seq_range_;
+inline const SequenceRange& GraphVertex::seqRange() const
+{
+    return seq_range_;
 }
 
-inline int GraphVertex::alive_timeout_times() const {
-  return alive_timeout_times_;
+inline int GraphVertex::aliveTimeoutTimes() const
+{
+    return alive_timeout_times_;
 }
 
-inline void GraphVertex::set_alive_timeout_times(int times) {
-  alive_timeout_times_ = times;
+inline void GraphVertex::setAliveTimeoutTimes(int times)
+{
+    alive_timeout_times_ = times;
 }
 
-inline int GraphVertex::IncAliveTimeoutTimes() {
-  return ++alive_timeout_times_;
+inline int GraphVertex::incAliveTimeoutTimes()
+{
+    return ++alive_timeout_times_;
 }
 
-class GraphEdge {
+class GraphEdge
+{
 public:
-  inline GraphEdge(uint32_t source, uint32_t target, int weight)
-    : source_(source), target_(target), weight_(weight) {
-  }
+    GraphEdge(uint32_t source, uint32_t target, int weight)
+        : source_(source), target_(target), weight_(weight)
+    {
+    }
 
-  inline uint32_t source() const;
-  inline uint32_t target() const;
-  inline int weight() const;
-  inline void set_weight(int w);
+    uint32_t source() const;
+    uint32_t target() const;
+    int weight() const;
+    void setWeight(int w);
 
 private:
-  uint32_t source_;
-  uint32_t target_;
-  int weight_;
+    uint32_t source_;
+    uint32_t target_;
+    int weight_;
 };
 
-inline uint32_t GraphEdge::source() const {
-  return source_;
+inline uint32_t GraphEdge::source() const
+{
+    return source_;
 }
 
-inline uint32_t GraphEdge::target() const {
-  return target_;
+inline uint32_t GraphEdge::target() const
+{
+    return target_;
 }
 
-inline int GraphEdge::weight() const {
-  return weight_;
+inline int GraphEdge::weight() const
+{
+    return weight_;
 }
 
-inline void GraphEdge::set_weight(int w) {
-  weight_ = w;
+inline void GraphEdge::setWeight(int w)
+{
+    weight_ = w;
 }
 
-class Graph {
+class Graph
+{
 public:
-  Graph();
-  ~Graph();
+    Graph();
+    ~Graph();
 
-  inline const std::map<std::string, uint32_t>& vertex_names() const;
-  inline const std::unordered_map<uint32_t, GraphVertex*>& vertices() const;
-  inline bool ContainsVertex(const std::string& name) const;
-  inline bool ContainsVertex(uint32_t id) const;
-  GraphVertex* Vertex(const std::string& name) const;
-  GraphVertex* Vertex(uint32_t id) const;
-  GraphVertex* AddVertex(const std::string& name, uint8_t r,
-                         const UdpEndpoint& ep,
-                         const mtl::network::p2p::SequenceRange& sr);
-  void RemoveVertex(const std::string& name);
+    const std::map<std::string, uint32_t>& vertexNames() const;
+    const std::unordered_map<uint32_t, GraphVertex*>& vertices() const;
+    bool containsVertex(const std::string& name) const;
+    bool containsVertex(uint32_t id) const;
+    GraphVertex* vertex(const std::string& name) const;
+    GraphVertex* vertex(uint32_t id) const;
+    GraphVertex* addVertex(const std::string& name, uint8_t r,
+                           const UdpEndpoint& ep,
+                           const mtl::network::p2p::SequenceRange& sr);
+    void removeVertex(const std::string& name);
 
-  inline GraphEdge* Edge(const GraphVertex* s, const GraphVertex* t) const;
-  void AddEdge(const GraphVertex* s, const GraphVertex* t, int weight);
+    GraphEdge* edge(const GraphVertex* s, const GraphVertex* t) const;
+    void addEdge(const GraphVertex* s, const GraphVertex* t, int weight);
 
-  inline const GraphRelationships<Graph, GraphVertex, GraphEdge>& relationships() const;
-  void BreadthFirstSearch(const GraphVertex* v,
-                          std::list<UdpEndpoint>& addresses);
-  void Clear();
+    const GraphRelationships<Graph, GraphVertex, GraphEdge>& relationships() const;
+    void breadthFirstSearch(const GraphVertex* v,
+                            std::list<UdpEndpoint>& addresses);
+    void clear();
 
 private:
-  void RemoveEdge(GraphEdge* e);
+    void removeEdge(GraphEdge* e);
 
-  std::map<std::string, uint32_t> name_id_map_;
-  std::unordered_map<uint32_t, GraphVertex*> vertices_;
-  std::set<GraphEdge*> edges_;
-  GraphRelationships<Graph, GraphVertex, GraphEdge>* relationships_;
+    std::map<std::string, uint32_t> name_id_map_;
+    std::unordered_map<uint32_t, GraphVertex*> vertices_;
+    std::set<GraphEdge*> edges_;
+    GraphRelationships<Graph, GraphVertex, GraphEdge>* relationships_;
 };
 
-inline const std::map<std::string, uint32_t>& Graph::vertex_names() const {
-  return name_id_map_;
+inline const std::map<std::string, uint32_t>& Graph::vertexNames() const
+{
+    return name_id_map_;
 }
 
-inline const std::unordered_map<uint32_t, GraphVertex*>& Graph::vertices() const {
-  return vertices_;
+inline const std::unordered_map<uint32_t, GraphVertex*>& Graph::vertices() const
+{
+    return vertices_;
 }
 
-inline bool Graph::ContainsVertex(const std::string& name) const {
-  auto it = name_id_map_.find(name);
-  return (it != name_id_map_.end());
+inline bool Graph::containsVertex(const std::string& name) const
+{
+    auto it = name_id_map_.find(name);
+    return (it != name_id_map_.end());
 }
 
-inline bool Graph::ContainsVertex(uint32_t id) const {
-  auto it = vertices_.find(id);
-  return (it != vertices_.end());
+inline bool Graph::containsVertex(uint32_t id) const
+{
+    auto it = vertices_.find(id);
+    return (it != vertices_.end());
 }
 
-inline GraphEdge* Graph::Edge(const GraphVertex* s, const GraphVertex* t) const {
-  return relationships_->Edge(s, t);
+inline GraphEdge* Graph::edge(const GraphVertex* s, const GraphVertex* t) const
+{
+    return relationships_->edge(s, t);
 }
 
-inline const GraphRelationships<Graph, GraphVertex, GraphEdge>& Graph::relationships() const {
-  return *relationships_;
+inline const GraphRelationships<Graph, GraphVertex, GraphEdge>& Graph::relationships() const
+{
+    return *relationships_;
 }
 
 } // p2p

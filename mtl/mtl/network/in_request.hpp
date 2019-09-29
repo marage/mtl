@@ -6,7 +6,8 @@
 namespace mtl {
 namespace network {
 
-class MTL_EXPORT InRequest : public InStream {
+class MTL_EXPORT InRequest : public InStream
+{
 public:
     InRequest();
     InRequest(const SharedBuffer& buffer, uint16_t size,
@@ -14,12 +15,14 @@ public:
 
     uint16_t dataSize() const { return (size() - kHeaderLength); }
     const UdpEndpoint& from() const { return from_; }
-    void setFrom(const UdpEndpoint& from) {
+    void setFrom(const UdpEndpoint& from)
+    {
         from_ = from;
     }
 
     bool isHandled() const { return handled_; }
-    void setHandled(bool handled) {
+    void setHandled(bool handled)
+    {
         handled_ = handled;
     }
 

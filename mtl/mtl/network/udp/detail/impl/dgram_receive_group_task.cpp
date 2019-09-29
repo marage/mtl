@@ -1,4 +1,4 @@
-#include "mtl/network/udp/detail/dgram_group_recv_task.hpp"
+#include "mtl/network/udp/detail/dgram_receive_group_task.hpp"
 #include "mtl/network/udp/dgram.hpp"
 #include "mtl/network/in_request.hpp"
 #include "mtl/network/protocol.hpp"
@@ -8,35 +8,35 @@ namespace mtl {
 namespace network {
 namespace udp {
 
-GroupRecvTask::GroupRecvTask(Dgram* s, uint16_t id,
-                             const boost::asio::ip::udp::endpoint& from)
-    : dgram_(s), id_(id), inited_(false), status_(WAITING)
+ReceiveGroupTask::ReceiveGroupTask(Dgram* s, uint16_t id,
+                                   const UdpEndpoint& from)
+    : dgram_(s), id_(id), inited_(false), status_(kWaitingBlock)
     , size_(0), count_(0), recvd_(0), max_index_(0), from_(from)
 {
-    create_time_ = boost::posix_time::microsec_clock::local_time();
-    end_time_ = create_time_ + boost::posix_time::seconds(90);
-    report_time_ = create_time_ + boost::posix_time::milliseconds(50);
+    create_time_ = std::chrono::system_clock::now();
+    end_time_ = create_time_ + std::chrono::seconds(90);
+    report_time_ = create_time_ + std::chrono::milliseconds(50);
 }
 
-int32_t GroupRecvTask::cost() const
+int32_t ReceiveGroupTask::cost() const
 {
-    boost::posix_time::ptime now = boost::posix_time::microsec_clock::local_time();
-    boost::posix_time::time_duration d = now - create_time_;
-    return (int32_t) d.total_milliseconds();
+    std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
+    std::chrono::system_clock::duration d = now - create_time_;
+    return int32_t(std::chrono::duration_cast<std::chrono::milliseconds>(d).count());
 }
 
-void GroupRecvTask::handleTimeout(const boost::posix_time::ptime& now)
+void ReceiveGroupTask::handleTimeout(const std::chrono::system_clock::time_point& now)
 {
     if (now >= end_time_) {
-        if (status_ != COMPLETED) {
-            status_ = FAILED;
+        if (status_ != kCompletedReceiving) {
+            status_ = kFailed;
         }
     } else if (report_time_ > now) {
-        if (max_index_ >= UDP_WINDOW && double(lostCount())/double(max_index_) > 0.2) {
+        if (max_index_ >= kUdpWindow && double(lostCount())/double(max_index_) > 0.2) {
             // Format: groupid | type | recvd count | block list
-            OutRequest oreq(PT_GROUP_IN, Dgram::nextSequence());
+            OutRequest oreq(kInGroupType, Dgram::nextSequence());
             oreq.writeInt16(id_);
-            oreq.writeInt8(PT_GROUP_REPORT);
+            oreq.writeInt8(kGroupReportType);
             oreq.writeInt16(recvd_);
             for (uint16_t i = 0; i < recvd_; ++i) {
                 if (flags_[i] == 0) {
@@ -45,11 +45,11 @@ void GroupRecvTask::handleTimeout(const boost::posix_time::ptime& now)
             }
             dgram_->asyncSendTo(oreq, from_, 0);
         }
-        report_time_ = now + boost::posix_time::milliseconds(50);
+        report_time_ = now + std::chrono::milliseconds(50);
     }
 }
 
-uint16_t GroupRecvTask::lostCount() const
+uint16_t ReceiveGroupTask::lostCount() const
 {
     uint16_t lost = 0;
     uint16_t count = recvd_;
@@ -59,11 +59,10 @@ uint16_t GroupRecvTask::lostCount() const
     return lost;
 }
 
-void GroupRecvTask::handleReceivePacket(InRequest& ireq,
-                                        const boost::asio::ip::udp::endpoint& /*from*/)
+void ReceiveGroupTask::handleReceivePacket(InRequest& ireq, const UdpEndpoint& /*from*/)
 {
     uint8_t cmd = ireq.readInt8();
-    if (cmd == PT_GROUP_BLOCK || cmd == PT_GROUP_LAST_BLOCK) {
+    if (cmd == kGroupBlockType || cmd == kGroupLastBlockType) {
         // get the block count
         count_ = ireq.readInt16();
         // get the block data
@@ -72,22 +71,22 @@ void GroupRecvTask::handleReceivePacket(InRequest& ireq,
         if (index == 0 && !dgram_->group_head_arrival_signal.empty()) {
             InRequest ir(ireq.buffer(), ireq.size());
             // skip 'id'(16), 'type'(8), 'count'(16), 'block'(16)
-            ir.skip(3 * sizeof(uint16_t) + sizeof(uint8_t), SKIP_CURRENT);
+            ir.skip(3 * sizeof(uint16_t) + sizeof(uint8_t), kSkipCurrent);
             bool passed = false;
             dgram_->group_head_arrival_signal(ir, from_, &passed);
             if (!passed) {
-                OutRequest oreq(PT_GROUP_IN, Dgram::nextSequence());
+                OutRequest oreq(kInGroupType, Dgram::nextSequence());
                 oreq.writeInt16(id_);
-                oreq.writeInt8(PT_GROUP_REPORT);
+                oreq.writeInt8(kGroupReportType);
                 oreq.writeInt16(count_);
                 dgram_->asyncSendTo(oreq, from_, 5000);
-                status_ = FAILED;
+                status_ = kFailed;
                 return;
             }
         }
         if (!buffer_) {
             // create the recv buffer
-            buffer_ = SingletonBufferPool::getSingleton().malloc(UDP_GROUP_DATA_SIZE * count_);
+            buffer_ = SingletonBufferPool::getSingleton().allocBuffer(kUdpGroupDataSize * count_);
             // init the block flag
             memset(flags_, 0, sizeof(uint8_t) * count_);
         }
@@ -96,26 +95,26 @@ void GroupRecvTask::handleReceivePacket(InRequest& ireq,
                 max_index_ = index;
             }
             flags_[index] = 1;
-            char* p = buffer_.get() + index * UDP_GROUP_DATA_SIZE;
+            char* p = buffer_.get() + index * kUdpGroupDataSize;
             uint16_t size = ireq.left();
-            memcpy(p, (void*)ireq.data(), size);
+            memcpy(p, ireq.data(), size);
             size_ += size;
             if (++recvd_ >= count_) {
                 // finished
-                OutRequest oreq(PT_GROUP_IN, Dgram::nextSequence());
+                OutRequest oreq(kInGroupType, Dgram::nextSequence());
                 oreq.writeInt16(id_);
-                oreq.writeInt8(PT_GROUP_REPORT);
+                oreq.writeInt8(kGroupReportType);
                 oreq.writeInt16(recvd_);
                 dgram_->asyncSendTo(oreq, from_, 5000);
-                status_ = COMPLETED;
+                status_ = kCompletedReceiving;
                 return;
             }
         }
-        if (cmd == PT_GROUP_LAST_BLOCK && lostCount() > 0) {
+        if (cmd == kGroupLastBlockType && lostCount() > 0) {
             // Format: groupid | type | recvd count | block list
-            OutRequest oreq(PT_GROUP_IN, Dgram::nextSequence());
+            OutRequest oreq(kInGroupType, Dgram::nextSequence());
             oreq.writeInt16(id_);
-            oreq.writeInt8(PT_GROUP_REPORT);
+            oreq.writeInt8(kGroupReportType);
             oreq.writeInt16(recvd_);
             for (uint16_t i = 0; i < recvd_; ++i) {
                 if (flags_[i] == 0) {
@@ -124,11 +123,11 @@ void GroupRecvTask::handleReceivePacket(InRequest& ireq,
             }
             dgram_->asyncSendTo(oreq, from_, 0);
         }
-    } else if (cmd == PT_GROUP_CANCEL) {
-        status_ = FAILED;
+    } else if (cmd == kGroupCancelType) {
+        status_ = kFailed;
     }
 }
 
-}
-}
-}
+} // namespace udp
+} // namespace network
+} // namespace mtl

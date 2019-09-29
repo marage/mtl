@@ -5,44 +5,48 @@
 
 namespace mtl {
 
-class MTL_EXPORT Task {
+class MTL_EXPORT Task
+{
 public:
-  enum State {
-    kInactive,
-    kActive,
-    kCompleted,
-    kFailed
-  };
+    enum State
+    {
+        kInactive,
+        kActive,
+        kCompleted,
+        kFailed
+    };
 
-  explicit Task(int type, int timeout = 10000);
-  virtual ~Task() {}
+    explicit Task(int type, int timeout = 10000);
+    virtual ~Task() {}
 
-  inline int type() const { return type_; }
-  inline bool IsInactive()const { return state_ == kInactive; }
-  inline bool IsActive()const { return state_ == kActive; }
-  inline bool IsCompleted()const { return state_ == kCompleted; }
-  inline bool IsFailed()const { return state_ == kFailed; }
-  inline State state() const { return state_; }
-  inline const TimePoint& dead_time() const {
-    return dead_time_;
-  }
-  inline bool IsTimeout(const TimePoint& now) const {
-    return (now >= dead_time_);
-  }
+    int type() const { return type_; }
+    bool isInactive()const { return state_ == kInactive; }
+    bool isActive()const { return state_ == kActive; }
+    bool isCompleted()const { return state_ == kCompleted; }
+    bool isFailed()const { return state_ == kFailed; }
+    State state() const { return state_; }
+    const std::chrono::system_clock::time_point& deadTime() const
+    {
+        return dead_time_;
+    }
+    bool isTimeout(const std::chrono::system_clock::time_point& now) const
+    {
+        return (now >= dead_time_);
+    }
 
-  void Activate();
-  State Process();
+    void activate();
+    State process();
 
 protected:
-  inline void set_state(State s) { state_ = s; }
+    void setState(State s) { state_ = s; }
 
 private:
-  virtual void ActivateImpl() {}
-  virtual State ProcessImpl() = 0;
+    virtual void activateImpl() {}
+    virtual State processImpl() = 0;
 
-  int type_;
-  State state_;
-  TimePoint dead_time_;
+    int type_;
+    State state_;
+    std::chrono::system_clock::time_point dead_time_;
 };
 
 typedef std::shared_ptr<Task> TaskPtr;

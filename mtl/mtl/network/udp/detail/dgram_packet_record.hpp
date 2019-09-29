@@ -8,39 +8,43 @@ namespace mtl {
 namespace network {
 namespace udp {
 
-class PacketRecord {
+class PacketRecord
+{
 public:
-  enum {
-    kMaxRecordCount = 500
-  };
+    enum
+    {
+        kMaxRecordCount = 500
+    };
 
-  PacketRecord();
-  bool Passed(uint32_t seq, const UdpEndpoint& from);
+    PacketRecord();
+    bool isPassed(uint32_t seq, const UdpEndpoint& from);
 
 private:
-  std::unordered_set<uint32_t> seq_set_;
-  uint32_t seqs_[kMaxRecordCount];
-  UdpEndpoint addresses_[kMaxRecordCount];
-  int pos_;
+    std::unordered_set<uint32_t> seq_set_;
+    uint32_t seqs_[kMaxRecordCount];
+    UdpEndpoint addresses_[kMaxRecordCount];
+    int pos_;
 };
 
-class GroupRecord {
+class GroupRecord
+{
 public:
-  enum {
-    kMaxRecordCount = 500
-  };
+    enum
+    {
+        kMaxRecordCount = 500
+    };
 
-  GroupRecord();
-  bool Exists(uint16_t id, uint16_t count,
-              const UdpEndpoint& from) const;
-  void Append(uint16_t id, uint16_t count,
-              const UdpEndpoint& from);
+    GroupRecord();
+    bool exists(uint16_t id, uint16_t count,
+                const UdpEndpoint& from) const;
+    void append(uint16_t id, uint16_t count,
+                const UdpEndpoint& from);
 
 private:
-  uint16_t ids_[kMaxRecordCount];
-  uint16_t counts_[kMaxRecordCount];
-  UdpEndpoint addresses_[kMaxRecordCount];
-  int pos_;
+    uint16_t ids_[kMaxRecordCount];
+    uint16_t counts_[kMaxRecordCount];
+    UdpEndpoint addresses_[kMaxRecordCount];
+    int pos_;
 };
 
 } // dgram

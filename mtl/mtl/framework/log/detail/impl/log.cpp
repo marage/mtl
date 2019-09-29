@@ -32,22 +32,23 @@ BOOST_LOG_ATTRIBUTE_KEYWORD(log_uptime, "Uptime", attrs::timer::value_type)
 BOOST_LOG_ATTRIBUTE_KEYWORD(log_scope, "Scope", attrs::named_scope::value_type)
 
 namespace mtl {
-  namespace framework {
-  namespace log {
+namespace framework {
+namespace log {
 
-  void InitLog(const std::string& directory_name) {
+void initLog(const std::string& directory_name)
+{
     logging::formatter formatter =
-        expr::stream
-        << "[" << expr::format_date_time(log_timestamp, "%H:%M:%S")
-        << "]" << expr::if_(expr::has_attr(log_uptime))
-           [
-           expr::stream << " [" << format_date_time(log_uptime, "%O:%M:%S") << "]"
-           ]
-        << expr::if_(expr::has_attr(log_scope))
-           [
-           expr::stream << "[" << expr::format_named_scope(log_scope, keywords::format = "%n") << "]"
-           ]
-        << "<" << log_severity << ">" << expr::message;
+            expr::stream
+            << "[" << expr::format_date_time(log_timestamp, "%H:%M:%S")
+            << "]" << expr::if_(expr::has_attr(log_uptime))
+               [
+               expr::stream << " [" << format_date_time(log_uptime, "%O:%M:%S") << "]"
+               ]
+            << expr::if_(expr::has_attr(log_scope))
+               [
+               expr::stream << "[" << expr::format_named_scope(log_scope, keywords::format = "%n") << "]"
+               ]
+            << "<" << log_severity << ">" << expr::message;
     //      << "<" << expr::attr<attrs::current_thread_id::value_type>("ThreadID") << ">"
 
     logging::add_common_attributes();
@@ -55,16 +56,16 @@ namespace mtl {
 
     auto console_sink = logging::add_console_log();
     auto file_sink = logging::add_file_log(
-          keywords::file_name = "logs/%Y-%m-%d_%N.log",      //文件名
-          keywords::rotation_size = 10*1024*1024,       //单个文件限制大小
-          keywords::time_based_rotation = sinks::file::rotation_at_time_point(0,0,0) //每天重建
-        );
+                         keywords::file_name = "logs/%Y-%m-%d_%N.log",      //文件名
+                         keywords::rotation_size = 10*1024*1024,       //单个文件限制大小
+                         keywords::time_based_rotation = sinks::file::rotation_at_time_point(0,0,0) //每天重建
+                                                         );
 
     file_sink->locked_backend()->set_file_collector(sinks::file::make_collector(
-                                                      keywords::target = directory_name,        //文件夹名
-                                                      keywords::max_size = 50*1024*1024,    //文件夹所占最大空间
-                                                      keywords::min_free_space = 100*1024*1024  //磁盘最小预留空间
-        ));
+                                                        keywords::target = directory_name,        //文件夹名
+                                                        keywords::max_size = 50*1024*1024,    //文件夹所占最大空间
+                                                        keywords::min_free_space = 100*1024*1024  //磁盘最小预留空间
+                                                                                   ));
 
     file_sink->set_filter(log_severity >= kWarning);   //日志级别过滤
     file_sink->locked_backend()->scan_for_files();
@@ -75,8 +76,8 @@ namespace mtl {
     logging::core::get()->add_global_attribute("Scope", attrs::named_scope());
     logging::core::get()->add_sink(console_sink);
     logging::core::get()->add_sink(file_sink);
-  }
+}
 
-  } // namespace log
-  } // namespace framework
+} // namespace log
+} // namespace framework
 } // namespace mtl

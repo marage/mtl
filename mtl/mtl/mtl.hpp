@@ -1,7 +1,7 @@
 #ifndef MTL_HPP
 #define MTL_HPP
+#include <chrono>
 #include <boost/cstdint.hpp>
-#include <ctime>
 
 #ifdef MTL_SHARED_LIBRARY
 #ifdef MTL_LIBRARY

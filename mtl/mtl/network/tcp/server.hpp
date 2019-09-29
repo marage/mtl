@@ -15,7 +15,7 @@
 #include <boost/shared_ptr.hpp>
 #include <string>
 #include "mtl/mtl.hpp"
-#include "mtl/network/io_service_pool.hpp"
+#include "mtl/network/context_pool.hpp"
 #include "connection.hpp"
 
 namespace mtl {
@@ -23,39 +23,40 @@ namespace network {
 namespace tcp {
 
 /// The top-level class of the TCP server.
-class MTL_EXPORT Server : private boost::noncopyable {
+class MTL_EXPORT Server : private boost::noncopyable
+{
 public:
-  /// signals
-  boost::signals2::signal<bool(ConnectionPtr)> new_connection_signal;
+    /// signals
+    boost::signals2::signal<bool(ConnectionPtr)> new_connection_signal;
 
-  /// Construct the server to listen on the specified TCP address and port.
-  explicit Server(IOServicePool& isp);
-  ~Server();
+    /// Construct the server to listen on the specified TCP address and port.
+    explicit Server(ContextPool& cp);
+    virtual ~Server();
 
-  /// Run the server's io_service loop.
-  virtual bool Open(const std::string& address, unsigned short port);
-  virtual bool Close();
-  
-  /// Get the socket address
-  TCPEndpoint LocalEndpoint() const;
+    /// Run the server's io_service loop.
+    virtual bool open(const std::string& address, unsigned short port);
+    virtual bool close();
+
+    /// Get the socket address
+    TcpEndpoint localEndpoint() const;
 
 private:
-  /// Initiate an asynchronous accept operation.
-  void StartAccept();
+    /// Initiate an asynchronous accept operation.
+    void startAccept();
 
-  /// Handle completion of an asynchronous accept operation.
-  void HandleAccept(const boost::system::error_code& e);
+    /// Handle completion of an asynchronous accept operation.
+    void handleAccept(const boost::system::error_code& e);
 
-  /// The pool of io_service objects used to perform asynchronous operations.
-  IOServicePool& io_service_pool_;
+    /// The pool of io_service objects used to perform asynchronous operations.
+    ContextPool& context_pool_;
 
-  /// Acceptor used to listen for incoming connections.
-  boost::asio::ip::tcp::acceptor acceptor_;
+    /// Acceptor used to listen for incoming connections.
+    boost::asio::ip::tcp::acceptor acceptor_;
 
-  /// The next connection to be accepted.
-  ConnectionPtr new_connection_;
+    /// The next connection to be accepted.
+    ConnectionPtr new_connection_;
 
-  /// The handler for all incoming requests.
+    /// The handler for all incoming requests.
 };
 
 typedef boost::shared_ptr<Server> ServerPtr;
