@@ -23,8 +23,8 @@ android {
 }
 
 win32 {
-    INCLUDEPATH += E:/boost/boost_1_71_0
-    LIBS += LE:/boost/boost_1_71_0/stage/lib
+    INCLUDEPATH += C:/boost/boost_1_71_0
+    LIBS += LC:/boost/boost_1_71_0/stage/lib
 }
 
 SOURCES += \

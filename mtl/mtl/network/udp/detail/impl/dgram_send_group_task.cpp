@@ -99,20 +99,25 @@ void SendGroupTask::handleReceivePacket(InRequest& ireq, const UdpEndpoint& from
                 idx = ireq.readInt8();
                 flags_[idx] = 0;
             }
-            if (pos_ < (count_ - 1)) {
-                // 发送窗口减半
+            // 發送窗口減半(丟失了一半)
+            if (pos_ > 0 && (float(recvd_) / float(pos_)) < 0.5f) {
                 window_time_ = std::chrono::system_clock::now() + std::chrono::milliseconds(500);
                 window_ -= int(window_ * 0.2);
                 if (window_ < kUdpWindow) {
                     window_ = kUdpWindow;
                 }
-                sendBlock(pos_++, std::chrono::system_clock::now());
-            } else {
-                sendBlock(firstLostIndex(), std::chrono::system_clock::now());
             }
-            // 继续发送
             status_ = kSending;
+            auto now = std::chrono::system_clock::now();
+            if (pos_ < (count_ - 1)) {
+                sendBlock(pos_++, now);
+            } else {
+                sendBlock(firstLostIndex(), now);
+            }
         }
+    } else if (cmd == kGroupBlockActType) {
+        status_ = kSending;
+        sendBlock(pos_++, std::chrono::system_clock::now());
     }
 }
 
@@ -165,7 +170,7 @@ void SendGroupTask::sendBlock(uint8_t index, const std::chrono::system_clock::ti
     // Format: Type | BlockCount | Block | Content
     OutRequest oreq(kOutGroupType, dgram_->nextSequence());
     oreq.writeInt16(id_);
-    oreq.writeInt8(index == last_index ? kGroupLastBlockType : kGroupBlockType);
+    oreq.writeInt8(kGroupBlockType);
     oreq.writeInt8(count_);
     oreq.writeInt8(index);
     oreq.writeBinary(data, data_size);

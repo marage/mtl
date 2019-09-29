@@ -45,7 +45,7 @@ constexpr uint16_t kKeepAliveType = 0x06;
 
 // udp group packet type
 constexpr uint8_t kGroupBlockType = 0x01;
-constexpr uint8_t kGroupLastBlockType = 0x02;
+constexpr uint8_t kGroupBlockActType = 0x02;
 constexpr uint8_t kGroupReportType = 0x03;
 constexpr uint8_t kGroupCancelType = 0x04;
 

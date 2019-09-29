@@ -503,13 +503,13 @@ void Dgram::handleReceiveGroupPacket(InRequest& ireq, const UdpEndpoint& from)
     if (!rgt) {
         uint16_t cur_pos = ireq.left();
         ireq.skip(sizeof(uint8_t), kSkipCurrent);
-        uint16_t count = ireq.readInt16();
+        uint8_t count = ireq.readInt8();
         ireq.skip(cur_pos, kSkipEnd);
         if (!group_record_.exists(id, count, from)) {
             OutRequest oreq(kInGroupType, nextSequence());
             oreq.writeInt16(id);
             oreq.writeInt8(kGroupReportType);
-            oreq.writeInt16(count);
+            oreq.writeInt8(count);
             asyncSendTo(oreq, from, 0);
         } else {
             // not found, it's a possible new packet
@@ -520,7 +520,7 @@ void Dgram::handleReceiveGroupPacket(InRequest& ireq, const UdpEndpoint& from)
         }
     }
     if (rgt) {
-        rgt->handleReceivePacket(ireq, from);
+        rgt->handleReceivePacket(ireq, from, now_);
         if (rgt->isCompleted() || rgt->isFailed()) {
             for (auto it = active_receive_group_tasks_.begin(), end = active_receive_group_tasks_.end();
                  it != end; ++it) {

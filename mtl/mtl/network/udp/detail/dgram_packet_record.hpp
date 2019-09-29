@@ -35,14 +35,14 @@ public:
     };
 
     GroupRecord();
-    bool exists(uint16_t id, uint16_t count,
+    bool exists(uint16_t id, uint8_t count,
                 const UdpEndpoint& from) const;
-    void append(uint16_t id, uint16_t count,
+    void append(uint16_t id, uint8_t count,
                 const UdpEndpoint& from);
 
 private:
     uint16_t ids_[kMaxRecordCount];
-    uint16_t counts_[kMaxRecordCount];
+    uint8_t counts_[kMaxRecordCount];
     UdpEndpoint addresses_[kMaxRecordCount];
     int pos_;
 };

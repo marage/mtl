@@ -1,4 +1,4 @@
-#ifndef MTL_FRAMEWORK_CORE_SINGLETON_TCP_SERVER_H
+﻿#ifndef MTL_FRAMEWORK_CORE_SINGLETON_TCP_SERVER_H
 #define MTL_FRAMEWORK_CORE_SINGLETON_TCP_SERVER_H
 #include "mtl/singleton/singleton.hpp"
 #include "tcp_server.h"
@@ -9,8 +9,9 @@ namespace core {
 
 template <typename ControllerFactory>
 class MTL_EXPORT SingletonTcpServer
-        : public Singleton<SingletonTcpServer<ControllerFactory>>
-        , public TcpServer<ControllerFactory> {
+    : public Singleton<SingletonTcpServer<ControllerFactory>>
+    , public TcpServer<ControllerFactory>
+{
 public:
     typedef Singleton<SingletonTcpServer<ControllerFactory>> Base;
 

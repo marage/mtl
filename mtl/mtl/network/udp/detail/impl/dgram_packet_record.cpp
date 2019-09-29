@@ -1,4 +1,4 @@
-#include "mtl/network/udp/detail/dgram_packet_record.hpp"
+﻿#include "mtl/network/udp/detail/dgram_packet_record.hpp"
 
 namespace mtl {
 namespace network {
@@ -33,7 +33,7 @@ GroupRecord::GroupRecord() : pos_(0)
     memset(ids_, 0, kMaxRecordCount * sizeof(uint16_t));
 }
 
-bool GroupRecord::exists(uint16_t id, uint16_t count, const UdpEndpoint& from) const
+bool GroupRecord::exists(uint16_t id, uint8_t count, const UdpEndpoint& from) const
 {
     bool ok = true;
     for (int i = 0; i < kMaxRecordCount; i++) {
@@ -45,7 +45,7 @@ bool GroupRecord::exists(uint16_t id, uint16_t count, const UdpEndpoint& from) c
     return ok;
 }
 
-void GroupRecord::append(uint16_t id, uint16_t count, const UdpEndpoint& from)
+void GroupRecord::append(uint16_t id, uint8_t count, const UdpEndpoint& from)
 {
     ids_[pos_] = id;
     counts_[pos_] = count;

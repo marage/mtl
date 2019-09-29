@@ -1,4 +1,4 @@
-//
+﻿//
 // io_context_pool.hpp
 // ~~~~~~~~~~~~~~~~~~~
 //
@@ -23,7 +23,7 @@ namespace network {
 
 /// A pool of io_service objects.
 class MTL_EXPORT ContextPool
-        : public Singleton<ContextPool>, private boost::noncopyable
+    : public Singleton<ContextPool>, private boost::noncopyable
 {
 public:
     /// Construct the io_service pool.

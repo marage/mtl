@@ -1,4 +1,4 @@
-#include "mtl/network/udp/detail/dgram_receive_group_task.hpp"
+﻿#include "mtl/network/udp/detail/dgram_receive_group_task.hpp"
 #include "mtl/network/udp/dgram.hpp"
 #include "mtl/network/in_request.hpp"
 #include "mtl/network/protocol.hpp"
@@ -37,8 +37,8 @@ void ReceiveGroupTask::handleTimeout(const std::chrono::system_clock::time_point
             OutRequest oreq(kInGroupType, Dgram::nextSequence());
             oreq.writeInt16(id_);
             oreq.writeInt8(kGroupReportType);
-            oreq.writeInt16(recvd_);
-            for (uint16_t i = 0; i < recvd_; ++i) {
+            oreq.writeInt8(recvd_);
+            for (uint8_t i = 0; i < recvd_; ++i) {
                 if (flags_[i] == 0) {
                     oreq.writeInt16(i);
                 }
@@ -49,40 +49,46 @@ void ReceiveGroupTask::handleTimeout(const std::chrono::system_clock::time_point
     }
 }
 
-uint16_t ReceiveGroupTask::lostCount() const
+uint8_t ReceiveGroupTask::lostCount() const
 {
-    uint16_t lost = 0;
-    uint16_t count = recvd_;
-    for (uint16_t i = 0; i < count && flags_[i] == 0; i++) {
+    uint8_t lost = 0;
+    uint8_t count = recvd_;
+    for (int i = 0; i < count && flags_[i] == 0; i++) {
         ++lost;
     }
     return lost;
 }
 
-void ReceiveGroupTask::handleReceivePacket(InRequest& ireq, const UdpEndpoint& /*from*/)
+void ReceiveGroupTask::handleReceivePacket(InRequest& ireq, const UdpEndpoint& /*from*/,
+                                           const std::chrono::system_clock::time_point& now)
 {
     uint8_t cmd = ireq.readInt8();
-    if (cmd == kGroupBlockType || cmd == kGroupLastBlockType) {
-        // get the block count
-        count_ = ireq.readInt16();
-        // get the block data
-        uint16_t index = ireq.readInt16();
-        // notify first index
-        if (index == 0 && !dgram_->group_head_arrival_signal.empty()) {
-            InRequest ir(ireq.buffer(), ireq.size());
-            // skip 'id'(16), 'type'(8), 'count'(16), 'block'(16)
-            ir.skip(3 * sizeof(uint16_t) + sizeof(uint8_t), kSkipCurrent);
-            bool passed = false;
-            dgram_->group_head_arrival_signal(ir, from_, &passed);
-            if (!passed) {
-                OutRequest oreq(kInGroupType, Dgram::nextSequence());
-                oreq.writeInt16(id_);
-                oreq.writeInt8(kGroupReportType);
-                oreq.writeInt16(count_);
-                dgram_->asyncSendTo(oreq, from_, 5000);
-                status_ = kFailed;
-                return;
+    if (cmd == kGroupBlockType) {
+        count_ = ireq.readInt8();
+        uint8_t index = ireq.readInt8();
+        if (index == 0) {
+            // notify first index
+            if (!dgram_->group_head_arrival_signal.empty()) {
+                InRequest ir(ireq.buffer(), ireq.size());
+                // skip 'id'(16), 'type'(8), 'count'(8), 'block'(8)
+                ir.skip(3 * sizeof(uint8_t) + sizeof(uint16_t), kSkipCurrent);
+                bool passed = false;
+                dgram_->group_head_arrival_signal(ir, from_, &passed);
+                if (!passed) {
+                    OutRequest oreq(kInGroupType, Dgram::nextSequence());
+                    oreq.writeInt16(id_);
+                    oreq.writeInt8(kGroupReportType);
+                    oreq.writeInt8(count_);
+                    dgram_->asyncSendTo(oreq, from_, 5000);
+                    status_ = kFailed;
+                    return;
+                }
             }
+            // notify first block ack
+            OutRequest oreq(kInGroupType, Dgram::nextSequence());
+            oreq.writeInt16(id_);
+            oreq.writeInt8(kGroupBlockActType);
+            dgram_->asyncSendTo(oreq, from_, 0);
         }
         if (!buffer_) {
             // create the recv buffer
@@ -104,24 +110,26 @@ void ReceiveGroupTask::handleReceivePacket(InRequest& ireq, const UdpEndpoint& /
                 OutRequest oreq(kInGroupType, Dgram::nextSequence());
                 oreq.writeInt16(id_);
                 oreq.writeInt8(kGroupReportType);
-                oreq.writeInt16(recvd_);
-                dgram_->asyncSendTo(oreq, from_, 5000);
+                oreq.writeInt8(recvd_);
+                dgram_->asyncSendTo(oreq, from_, 2000);
                 status_ = kCompletedReceiving;
                 return;
             }
         }
-        if (cmd == kGroupLastBlockType && lostCount() > 0) {
+        // last block
+        if ((index == count_ - 1) && lostCount() > 0) {
             // Format: groupid | type | recvd count | block list
             OutRequest oreq(kInGroupType, Dgram::nextSequence());
             oreq.writeInt16(id_);
             oreq.writeInt8(kGroupReportType);
-            oreq.writeInt16(recvd_);
-            for (uint16_t i = 0; i < recvd_; ++i) {
+            oreq.writeInt8(recvd_);
+            for (uint8_t i = 0; i < recvd_; ++i) {
                 if (flags_[i] == 0) {
-                    oreq.writeInt16(i);
+                    oreq.writeInt8(i);
                 }
             }
             dgram_->asyncSendTo(oreq, from_, 0);
+            report_time_ = now;
         }
     } else if (cmd == kGroupCancelType) {
         status_ = kFailed;
