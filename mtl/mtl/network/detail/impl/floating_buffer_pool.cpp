@@ -14,7 +14,7 @@ FloatingBufferPool::~FloatingBufferPool()
     releaseMemory();
 }
 
-void* FloatingBufferPool::malloc(std::size_t n)
+void* FloatingBufferPool::allocBuffer(std::size_t n)
 {
     constexpr std::size_t kBlockSize = 16;
     char* p = nullptr;
@@ -26,7 +26,7 @@ void* FloatingBufferPool::malloc(std::size_t n)
 
     p = static_cast<char*>(getBuffer(n));
     if (!p) {
-        p = static_cast<char*>(malloc(n + sizeof(void*)));
+        p = static_cast<char*>(::malloc(n + sizeof(void*)));
         assert( p );
         void* tmp = p + sizeof(void*);
         valid_ptr_list_[tmp] = tmp;
@@ -38,7 +38,7 @@ void* FloatingBufferPool::malloc(std::size_t n)
     return p;
 }
 
-void FloatingBufferPool::free(void* p)
+void FloatingBufferPool::freeBuffer(void* p)
 {
     char* rp = static_cast<char*>(p) - sizeof(void*);
     uint32_t size = *(reinterpret_cast<uint32_t*>(rp));
@@ -94,8 +94,9 @@ FloatingBufferPool::SizeNode* FloatingBufferPool::getNode(std::size_t size)
     SizeNode* p = node_list_;
     SizeNode* pre = p;
     while (p) {
-        if (p->size == static_cast<uint32_t>(size))
+        if (p->size == static_cast<uint32_t>(size)) {
             break;
+        }
         pre = p;
         p = p->next;
     }

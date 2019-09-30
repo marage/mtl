@@ -18,8 +18,8 @@ public:
         return (valid_ptr_list_.find(p) != valid_ptr_list_.end());
     }
 
-    void* malloc(std::size_t size);
-    void free(void* p);
+    void* allocBuffer(std::size_t size);
+    void freeBuffer(void* p);
 
     void releaseMemory();
 

@@ -26,9 +26,7 @@ class ReceiveGroupTask;
 class SendGroupTask;
 
 /// Not support thread
-class MTL_EXPORT Dgram
-        : public boost::enable_shared_from_this<Dgram>
-        , private boost::noncopyable
+class MTL_EXPORT Dgram : public boost::enable_shared_from_this<Dgram>, private boost::noncopyable
 {
 public:
     /// signals
@@ -77,13 +75,13 @@ private:
                                const UdpEndpoint& from);
     void handlePacketAck(InRequest& ireq);
     void handleReceiveGroupPacket(InRequest& ireq, const UdpEndpoint& from);
-    void handleReceiveGroupPacketAck(InRequest& ireq, const UdpEndpoint& from);
+    void handleSendGroupPacket(InRequest& ireq, const UdpEndpoint& from);
 
     void tick();
     bool processEvents();
     void mainLoop();
 
-    struct SmallPacket
+    struct PettyPacket
     {
         OutRequest oreq;
         UdpEndpoint to;
@@ -132,7 +130,7 @@ private:
     std::chrono::system_clock::time_point last_alive_time_;
     std::chrono::system_clock::time_point now_;
 
-    std::list<SmallPacket> small_packets_;
+    std::list<PettyPacket> petty_packets_;
     std::map<uint32_t, PendingPacket> pending_packets_;
     std::list<SendGroupTask*> inactive_send_group_tasks_;
     std::list<ReceiveGroupTask*> active_receive_group_tasks_;
@@ -152,16 +150,6 @@ private:
     friend class ReceiveGroupTask;
     friend class SendGroupTask;
 };
-
-inline std::string Dgram::toString(const UdpEndpoint& endpoint)
-{
-    std::string s;
-    s.append(endpoint.address().to_string());
-    std::stringstream ss;
-    ss << endpoint.port();
-    s.append(ss.str());
-    return s;
-}
 
 typedef boost::shared_ptr<Dgram> DgramPtr;
 

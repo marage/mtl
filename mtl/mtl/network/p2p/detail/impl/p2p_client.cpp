@@ -16,14 +16,17 @@ namespace p2p {
 
 Client::Client(const DgramPtr& dgram, Role role)
     : dgram_(dgram), timeout_(false), seq_range_({ 0, 0xffffffffffffffff })
-    , role_(role), status_(kIdleState), task_group_(0, false, 0) {
+    , role_(role), status_(kIdleState), task_group_(0, false, 0)
+{
 }
 
-Client::~Client() {
+Client::~Client()
+{
     close();
 }
 
-bool Client::open(const UdpEndpoint& endpoint) {
+bool Client::open(const UdpEndpoint& endpoint)
+{
     bool ret = dgram_->open(endpoint);
     if (ret) {
         dgram_->sent_signal.connect(boost::bind(&Client::handlePacketSent, this, _1, _2, _3));
@@ -40,16 +43,19 @@ bool Client::open(const UdpEndpoint& endpoint) {
     return ret;
 }
 
-void Client::close() {
+void Client::close()
+{
     clearTempTasks();
     dgram_->close();
 }
 
-UdpEndpoint Client::localEndpoint() const {
+UdpEndpoint Client::localEndpoint() const
+{
     return dgram_->localEndpoint();
 }
 
-bool Client::isNeighbor(const UdpEndpoint& endpoint) const {
+bool Client::isNeighbor(const UdpEndpoint& endpoint) const
+{
     bool ok = (server_endpoint_ == endpoint);
     if (!ok) {
         for (auto it = neighbors_.begin(); it != neighbors_.end(); ++it) {
@@ -63,7 +69,8 @@ bool Client::isNeighbor(const UdpEndpoint& endpoint) const {
 }
 
 // protocol: token | role
-void Client::join(const UdpEndpoint& to, const std::string& access_token) {
+void Client::join(const UdpEndpoint& to, const std::string& access_token)
+{
     if (status_ == kIdleState) {
         // change status
         server_endpoint_ = to;
@@ -73,13 +80,14 @@ void Client::join(const UdpEndpoint& to, const std::string& access_token) {
         OutRequest oreq(PT_P2P_JOIN, 0, kUdpHeaderLength);
         oreq.writeVersion(P2P_VERSION);
         oreq.writeString(access_token);
-        oreq.writeInt8((uint8_t)role_);
+        oreq.writeInt8(uint8_t(role_));
         dgram_->sendTo(oreq, to, 10000);
     }
 }
 
 // protocol: seq | timeout | data
-void Client::broadcast(OutRequest& oreq, int32_t timeout) {
+void Client::broadcast(OutRequest& oreq, uint32_t timeout)
+{
     if (!isMember()) {
         return;
     }
@@ -94,15 +102,16 @@ void Client::broadcast(OutRequest& oreq, int32_t timeout) {
     d_oreq.writeLength(oreq.size());
     d_oreq.writeVersion(P2P_VERSION);
     d_oreq.writeInt64(seq);
-    d_oreq.writeInt16((uint16_t)timeout);
+    d_oreq.writeInt16(uint16_t(timeout));
     d_oreq.skip(0, kSkipEnd);
     // At first, send data to the server
-    if (server_endpoint_.port() > 0)
+    if (server_endpoint_.port() > 0) {
         dgram_->sendTo(d_oreq, server_endpoint_, timeout);
+    }
     // send data to the neighbors
     if (d_oreq.size() > kUdpDataSize && !neighbors_.empty()) {
         UdpEndpoint from;
-        mtl::TaskPtr t(new BroadcastNeighborsTask(this, d_oreq, timeout, from));
+        mtl::TaskPtr t(new BroadcastNeighborsTask(this, d_oreq, int(timeout), from));
         temp_tasks_mutex_.lock();
         temp_tasks_.push_back(t);
         temp_tasks_mutex_.unlock();
@@ -111,26 +120,29 @@ void Client::broadcast(OutRequest& oreq, int32_t timeout) {
     }
 }
 
-void Client::sendTo(OutRequest& oreq, const UdpEndpoint& to, uint32_t timeout) {
+void Client::sendTo(OutRequest& oreq, const UdpEndpoint& to, uint32_t timeout)
+{
     dgram_->sendTo(oreq, to, timeout);
 }
 
 // protocol: token | role
-void Client::leave() {
+void Client::leave()
+{
     clearTempTasks();
     dgram_->clearPackets();
     if (isMember()) {
         OutRequest oreq(PT_P2P_LEAVE, 0, kUdpHeaderLength);
         oreq.writeVersion(P2P_VERSION);
         oreq.writeString(access_token_);
-        oreq.writeInt8((uint8_t)role());
+        oreq.writeInt8(uint8_t(role_));
         dgram_->sendTo(oreq, server_endpoint_);
         status_ = kIdleState;
     }
 }
 
 void Client::handlePacketArrival(InRequest& ireq, const UdpEndpoint& from, 
-                                 int32_t milliseconds) {
+                                 int32_t milliseconds)
+{
     uint32_t type = ireq.readCommand();
     if (type == PT_P2P_BROADCAST_DATA) {
         handleBroadcastData(ireq, from, milliseconds);
@@ -147,7 +159,8 @@ void Client::handlePacketArrival(InRequest& ireq, const UdpEndpoint& from,
 }
 
 void Client::handleGroupHeadArrival(InRequest& ireq, const UdpEndpoint& from,
-                                    bool* passed) {
+                                    bool* passed)
+{
     assert(passed);
     if (isNeighbor(from)) {
         ireq.skip(kHeaderLength, kSkipCurrent);
@@ -159,7 +172,8 @@ void Client::handleGroupHeadArrival(InRequest& ireq, const UdpEndpoint& from,
 }
 
 void Client::handlePacketSent(const OutRequest& oreq, const UdpEndpoint& to,
-                              int32_t milliseconds) {
+                              int32_t milliseconds)
+{
     if (to == server_endpoint_) {
         timeout_ = false;
     } else {
@@ -169,7 +183,8 @@ void Client::handlePacketSent(const OutRequest& oreq, const UdpEndpoint& to,
     processTasks();
 }
 
-void Client::handlePacketTimeout(const OutRequest& oreq, const UdpEndpoint& to) {
+void Client::handlePacketTimeout(const OutRequest& oreq, const UdpEndpoint& to)
+{
     InRequest ireq(oreq.buffer(), oreq.size(), oreq.begin());
     uint32_t type = ireq.readCommand();
     if (type == PT_P2P_JOIN) {
@@ -184,7 +199,8 @@ void Client::handlePacketTimeout(const OutRequest& oreq, const UdpEndpoint& to) 
 }
 
 // protocol: sequence range(min,max) | neighbor count | {neighbor(endpoint, role)}
-void Client::handleJoinAck(InRequest& ireq, const UdpEndpoint& /*from*/) {
+void Client::handleJoinAck(InRequest& ireq, const UdpEndpoint& /*from*/)
+{
     if (status_ != kJoiningState) {
         return;
     }
@@ -212,7 +228,8 @@ void Client::handleJoinAck(InRequest& ireq, const UdpEndpoint& /*from*/) {
 }
 
 // protocol: role | ip | port
-void Client::handleAddNeighbor(InRequest& ireq, const UdpEndpoint& /*from*/) {
+void Client::handleAddNeighbor(InRequest& ireq, const UdpEndpoint& /*from*/)
+{
     if (isMember()) {
         uint8_t count = ireq.readInt8();
         (void)count;
@@ -228,7 +245,8 @@ void Client::handleAddNeighbor(InRequest& ireq, const UdpEndpoint& /*from*/) {
 }
 
 // protocol: count | {role | ip | port} | count | {role | ip : port}
-void Client::handleReplaceNeighbor(InRequest& ireq, const UdpEndpoint& /*from*/) {
+void Client::handleReplaceNeighbor(InRequest& ireq, const UdpEndpoint& /*from*/)
+{
     if (isMember()) {
         uint8_t role;
         char bytes[16];
@@ -258,7 +276,8 @@ void Client::handleReplaceNeighbor(InRequest& ireq, const UdpEndpoint& /*from*/)
 
 // protocol: seq | timeout | data
 void Client::handleBroadcastData(InRequest& ireq, const UdpEndpoint& from,
-                                 int32_t milliseconds) {
+                                 int32_t milliseconds)
+{
     if (!isMember() || !isNeighbor(from)) {
         return;
     }
@@ -282,7 +301,7 @@ void Client::handleBroadcastData(InRequest& ireq, const UdpEndpoint& from,
     if (size > kUdpDataSize && false && !neighbors_.empty() && (server_endpoint_ != from)) {
         uint16_t timeout = ireq.readInt16();
         if (timeout > milliseconds) {
-            uint16_t left = timeout - (uint16_t)milliseconds;
+            uint16_t left = timeout - uint16_t(milliseconds);
             if (left > (milliseconds/3)) {
                 OutRequest oreq(ireq.buffer(), ireq.size(), ireq.begin());
                 oreq.skip(sizeof(uint64_t), kSkipCurrent);

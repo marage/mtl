@@ -106,8 +106,6 @@ void Server::broadcast(OutRequest& oreq, int timeout)
 void Server::handlePacketArrival(InRequest& ireq, const UdpEndpoint& from, 
                                  int32_t milliseconds)
 {
-    int s = ireq.size();
-    std::cout << "cost:" << milliseconds << "\t" << s << std::endl;
     uint32_t type = ireq.readCommand();
     if (type == PT_P2P_BROADCAST_DATA) {
         handleBroadcastData(ireq, from, milliseconds);

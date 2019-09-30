@@ -19,17 +19,16 @@ constexpr uint16_t kUdpHeaderLength = kHeaderLength;
 // header | groupid(int16_t) | subtype(int8_t) | blockcount(int8_t)
 // | blockindex(int8_t)
 constexpr uint16_t kUdpGroupHeaderLength = kUdpHeaderLength + sizeof(int16_t)
-    + 3 * sizeof(int8_t);
+                                           + 3 * sizeof(int8_t);
 
 constexpr uint16_t kUdpDataSize = kUdpMaxPacketSize - kUdpHeaderLength;
 constexpr uint16_t kUdpGroupDataSize = kUdpMaxPacketSize - kUdpGroupHeaderLength;
 
 constexpr uint16_t kUdpGroupBlockCount = 255;
 constexpr uint16_t kUdpBufferSize =
-    uint16_t(kUdpGroupBlockCount * kUdpGroupDataSize - kUdpHeaderLength);
+        uint16_t(kUdpGroupBlockCount * kUdpGroupDataSize - kUdpHeaderLength);
 
-constexpr uint32_t kUdpTimeout = 1000; // 1s
-constexpr uint32_t kUdpTryoutTimeout = 500;
+constexpr uint32_t kUdpTryoutTimeout = 1000;
 constexpr uint32_t kUdpTryoutCount = 3;
 constexpr uint32_t kUdpAlive = 2000;   // 2s
 constexpr uint8_t kUdpWindow = 8;
@@ -39,8 +38,8 @@ constexpr uint8_t kUdpMaxWindow = 255;
 constexpr uint16_t kUdpType = 0x01;
 constexpr uint16_t kRudpType = 0x02;
 constexpr uint16_t kAckType = 0x03;
-constexpr uint16_t kOutGroupType = 0x04;
-constexpr uint16_t kInGroupType = 0x05;
+constexpr uint16_t kSendGroupType = 0x04;
+constexpr uint16_t kReceiveGroupType = 0x05;
 constexpr uint16_t kKeepAliveType = 0x06;
 
 // udp group packet type

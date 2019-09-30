@@ -63,7 +63,7 @@ SharedBuffer SingletonBufferPool::allocBuffer(unsigned int size)
         p = static_cast<char*>(fixed_pool_.malloc());
     }
     if (!p) {
-        p = static_cast<char*>(floating_pool_.malloc(size));
+        p = static_cast<char*>(floating_pool_.allocBuffer(size));
     }
     mutex_.unlock();
     return SharedBuffer(p, BufferPoolDeallocator::instance());
@@ -73,7 +73,7 @@ void SingletonBufferPool::freeBuffer(void* p)
 {
     mutex_.lock();
     if (floating_pool_.isFrom(p)) {
-        floating_pool_.free(p);
+        floating_pool_.freeBuffer(p);
     } else if (fixed_pool_.is_from(p)) {
         fixed_pool_.free(p);
     }

@@ -52,7 +52,7 @@ public:
     bool isNeighbor(const UdpEndpoint& endpoint) const;
 
     void join(const UdpEndpoint& to, const std::string& access_token);
-    void broadcast(OutRequest& oreq, int32_t timeout = 5000);
+    void broadcast(OutRequest& oreq, uint32_t timeout = 5000);
     void sendTo(OutRequest& oreq, const UdpEndpoint& to,
                 uint32_t timeout = 5000);
     void leave();

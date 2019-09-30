@@ -8,15 +8,16 @@
 namespace mtl {
 namespace network {
 
-class MTL_EXPORT OutStream {
+class MTL_EXPORT OutStream
+{
 public:
     explicit OutStream(uint16_t begin = 0);
     OutStream(const SharedBuffer& buffer, uint16_t size, uint16_t begin);
 
-    inline const SharedBuffer& buffer() const;
-    inline uint16_t begin() const;
-    inline uint16_t size() const;
-    inline uint16_t left() const;
+    const SharedBuffer& buffer() const;
+    uint16_t begin() const;
+    uint16_t size() const;
+    uint16_t left() const;
 
     uint16_t skip(uint16_t offset, int origin);
     void resize(uint16_t sz);
@@ -36,19 +37,23 @@ private:
     char* cursor_;
 };
 
-inline const SharedBuffer& OutStream::buffer() const {
+inline const SharedBuffer& OutStream::buffer() const
+{
     return buffer_;
 }
 
-inline uint16_t OutStream::begin() const {
+inline uint16_t OutStream::begin() const
+{
     return begin_;
 }
 
-inline uint16_t OutStream::size() const {
+inline uint16_t OutStream::size() const
+{
     return static_cast<uint16_t>((cursor_ - buffer_.get()));
 }
 
-inline uint16_t OutStream::left() const {
+inline uint16_t OutStream::left() const
+{
     return (size_ - size());
 }
 

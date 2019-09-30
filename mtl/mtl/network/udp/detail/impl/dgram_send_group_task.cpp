@@ -168,7 +168,7 @@ void SendGroupTask::sendBlock(uint8_t index, const std::chrono::system_clock::ti
     }
     char* data = buffer_.get() + index * kUdpGroupDataSize;
     // Format: Type | BlockCount | Block | Content
-    OutRequest oreq(kOutGroupType, dgram_->nextSequence());
+    OutRequest oreq(kSendGroupType, dgram_->nextSequence());
     oreq.writeInt16(id_);
     oreq.writeInt8(kGroupBlockType);
     oreq.writeInt8(count_);

@@ -116,7 +116,7 @@ bool Dgram::sendTo(const OutRequest& oreq, const UdpEndpoint& to, uint32_t timeo
         d_oreq.writeSequence(nextSequence());
         d_oreq.skip(0, kSkipEnd);
         mutex_.lock();
-        small_packets_.push_back(SmallPacket{ d_oreq, to, end_time });
+        petty_packets_.push_back(PettyPacket{ d_oreq, to, end_time });
         mutex_.unlock();
     } else if (size > kUdpDataSize) {
         SendGroupTask* p = new SendGroupTask(this, oreq.buffer(), size, to, end_time);
@@ -127,7 +127,7 @@ bool Dgram::sendTo(const OutRequest& oreq, const UdpEndpoint& to, uint32_t timeo
         OutRequest d_oreq((timeout > 0 ? kRudpType : kUdpType), nextSequence());
         d_oreq.writeBinary(oreq.buffer().get(), size);
         mutex_.lock();
-        small_packets_.push_back(SmallPacket{ d_oreq, to, end_time });
+        petty_packets_.push_back(PettyPacket{ d_oreq, to, end_time });
         mutex_.unlock();
     }
     // post an event
@@ -151,9 +151,9 @@ void Dgram::clearPackets(const UdpEndpoint& to)
 {
     bool exists = false;
     mutex_.lock();
-    for (auto it = small_packets_.begin(); it != small_packets_.end();) {
+    for (auto it = petty_packets_.begin(); it != petty_packets_.end();) {
         if ((*it).to == to) {
-            it = small_packets_.erase(it);
+            it = petty_packets_.erase(it);
         } else {
             it++;
         }
@@ -167,7 +167,7 @@ void Dgram::clearPackets(const UdpEndpoint& to)
                 oreq.writeInt16((*it)->id());
                 oreq.writeInt8(kGroupCancelType);
                 oreq.writeLength(oreq.size());
-                small_packets_.push_back(SmallPacket{ oreq, (*it)->to(), end_time });
+                petty_packets_.push_back(PettyPacket{ oreq, (*it)->to(), end_time });
                 delete *it;
                 it = active_send_group_tasks_.erase(it);
                 exists = true;
@@ -195,7 +195,7 @@ void Dgram::clearPackets()
 {
     std::chrono::system_clock::time_point end_time = std::chrono::system_clock::now() + std::chrono::milliseconds(500);
     mutex_.lock();
-    small_packets_.clear();
+    petty_packets_.clear();
     pending_packets_.clear();
     if (!active_send_group_tasks_.empty()) {
         for (auto it = active_send_group_tasks_.begin(),
@@ -204,7 +204,7 @@ void Dgram::clearPackets()
             oreq.writeInt16((*it)->id());
             oreq.writeInt8(kGroupCancelType);
             oreq.writeLength(oreq.size());
-            small_packets_.push_back(SmallPacket{ oreq, (*it)->to(), end_time });
+            petty_packets_.push_back(PettyPacket{ oreq, (*it)->to(), end_time });
             delete *it;
         }
     }
@@ -318,12 +318,12 @@ void Dgram::handleClose()
 
     mutex_.lock();
 
-    auto& small_packets = small_packets_;
+    auto& petty_packets = petty_packets_;
     auto& inactive_send_group_tasks = inactive_send_group_tasks_;
 
-    // small packets
-    while (!small_packets.empty()) {
-        small_packets.pop_front();
+    // petty packets
+    while (!petty_packets.empty()) {
+        petty_packets.pop_front();
     }
 
     // pending packets
@@ -369,19 +369,19 @@ bool Dgram::sendNextPacket()
     bool has_packets = true;
     const std::chrono::system_clock::time_point& now = now_;
     std::mutex& mutex = mutex_;
-    auto& small_packets = small_packets_;
+    auto& petty_packets = petty_packets_;
     auto& inactive_send_group_tasks = inactive_send_group_tasks_;
     auto& send_group_tasks = active_send_group_tasks_;
 
-    // send small packets
+    // send petty packets
     while (1) {
         mutex.lock();
-        if (small_packets.empty()) {
+        if (petty_packets.empty()) {
             has_packets = false;
             mutex.unlock();
             break;
         } else {
-            SmallPacket& sp = small_packets.front();
+            PettyPacket& sp = petty_packets.front();
             if (sp.end_time > now) {
                 if (!destIsReceiving(sp.to)) {
                     asyncSendTo(sp.oreq, sp.to, 0);
@@ -392,15 +392,15 @@ bool Dgram::sendNextPacket()
                                     std::make_pair(sp.oreq.sequence(),
                                                    PendingPacket{ sp.oreq, sp.to, sp.end_time, next_time }));
                     }
-                    small_packets.pop_front();
+                    petty_packets.pop_front();
                 }
-                has_packets = !small_packets.empty();
+                has_packets = !petty_packets.empty();
                 mutex.unlock();
                 break;
             } else {
-                SmallPacket sp2 = sp;
-                small_packets.pop_front();
-                has_packets = !small_packets.empty();
+                PettyPacket sp2 = sp;
+                petty_packets.pop_front();
+                has_packets = !petty_packets.empty();
                 mutex.unlock();
                 timeout_signal(OutRequest(sp2.oreq.buffer(), sp2.oreq.size(), kUdpHeaderLength), sp2.to);
             }
@@ -460,17 +460,17 @@ void Dgram::handleReceiveComplete(const SharedBuffer& buffer, size_t bytes_recvd
         {
             InRequest ir(buffer, uint16_t(bytes_recvd), kUdpHeaderLength);
             ir.setFrom(from);
-            arrival_signal(ir, from, 10);
+            arrival_signal(ir, from, 0);
             break;
         }
-        case kOutGroupType:
+        case kSendGroupType:
+        {
+            handleSendGroupPacket(ireq, from);
+            break;
+        }
+        case kReceiveGroupType:
         {
             handleReceiveGroupPacket(ireq, from);
-            break;
-        }
-        case kInGroupType:
-        {
-            handleReceiveGroupPacketAck(ireq, from);
             break;
         }
         case kUdpType:
@@ -496,51 +496,51 @@ void Dgram::handlePacketAck(InRequest& ireq)
     }
 }
 
-void Dgram::handleReceiveGroupPacket(InRequest& ireq, const UdpEndpoint& from)
+void Dgram::handleSendGroupPacket(InRequest& ireq, const UdpEndpoint& from)
 {
     uint16_t id = ireq.readInt16();
-    ReceiveGroupTask* rgt = getReceiveGroupTask(id, from);
-    if (!rgt) {
+    ReceiveGroupTask* gt = getReceiveGroupTask(id, from);
+    if (!gt) {
         uint16_t cur_pos = ireq.left();
         ireq.skip(sizeof(uint8_t), kSkipCurrent);
         uint8_t count = ireq.readInt8();
         ireq.skip(cur_pos, kSkipEnd);
         if (!group_record_.exists(id, count, from)) {
-            OutRequest oreq(kInGroupType, nextSequence());
+            OutRequest oreq(kReceiveGroupType, nextSequence());
             oreq.writeInt16(id);
             oreq.writeInt8(kGroupReportType);
             oreq.writeInt8(count);
             asyncSendTo(oreq, from, 0);
         } else {
             // not found, it's a possible new packet
-            rgt = new ReceiveGroupTask(this, id, from);
-            if (rgt) {
-                active_receive_group_tasks_.push_back(rgt);
+            gt = new ReceiveGroupTask(this, id, from);
+            if (gt) {
+                active_receive_group_tasks_.push_back(gt);
             }
         }
     }
-    if (rgt) {
-        rgt->handleReceivePacket(ireq, from, now_);
-        if (rgt->isCompleted() || rgt->isFailed()) {
+    if (gt) {
+        gt->handleReceivePacket(ireq, from, now_);
+        if (gt->isCompleted() || gt->isFailed()) {
             for (auto it = active_receive_group_tasks_.begin(), end = active_receive_group_tasks_.end();
                  it != end; ++it) {
                 if ((*it)->compareId(id, from)) {
-                    group_record_.append(id, rgt->blockCount(), from);
-                    if (rgt->isCompleted()) {
-                        InRequest ireq(rgt->data(), rgt->size());
+                    group_record_.append(id, gt->blockCount(), from);
+                    if (gt->isCompleted()) {
+                        InRequest ireq(gt->data(), gt->size());
                         ireq.setFrom(from);
-                        arrival_signal(ireq, from, int32_t(rgt->cost()));
+                        arrival_signal(ireq, from, int32_t(gt->cost()));
                     }
                     active_receive_group_tasks_.erase(it);
                     break;
                 }
             }
-            delete rgt;
+            delete gt;
         }
     }
 }
 
-void Dgram::handleReceiveGroupPacketAck(InRequest& ireq, const UdpEndpoint& from)
+void Dgram::handleReceiveGroupPacket(InRequest& ireq, const UdpEndpoint& from)
 {
     uint16_t id = ireq.readInt16();
     for (auto it = active_send_group_tasks_.begin(), end = active_send_group_tasks_.end();
@@ -595,15 +595,15 @@ void Dgram::tick()
     }
     // sending packets
     {
-        auto& group_sending_tasks = active_send_group_tasks_;
+        auto& sending_group_tasks = active_send_group_tasks_;
         bool unlocked = false;
         mutex_.lock();
-        for (auto it = group_sending_tasks.begin(), end = group_sending_tasks.end();
+        for (auto it = sending_group_tasks.begin(), end = sending_group_tasks.end();
              it != end; ++it) {
             (*it)->handleTimeout(now);
             if ((*it)->isFailed()) {
                 SendGroupTask* t = *it;
-                group_sending_tasks.erase(it);
+                sending_group_tasks.erase(it);
                 mutex.unlock();
                 unlocked = true;
                 timeout_signal(OutRequest(t->buffer(), t->size()), t->to());
@@ -704,6 +704,17 @@ uint32_t Dgram::nextSequence()
     seq = seq % 0xFFFFFFFF;
     return seq;
 }
+
+std::string Dgram::toString(const UdpEndpoint& endpoint)
+{
+    std::string s;
+    s.append(endpoint.address().to_string());
+    std::stringstream ss;
+    ss << ':' << endpoint.port();
+    s.append(ss.str());
+    return s;
+}
+
 } // udp
 } // network
 } // mtl

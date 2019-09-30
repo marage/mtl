@@ -34,7 +34,7 @@ void ReceiveGroupTask::handleTimeout(const std::chrono::system_clock::time_point
     } else if (report_time_ > now) {
         if (max_index_ >= kUdpWindow && double(lostCount())/double(max_index_) > 0.2) {
             // Format: groupid | type | recvd count | block list
-            OutRequest oreq(kInGroupType, Dgram::nextSequence());
+            OutRequest oreq(kReceiveGroupType, Dgram::nextSequence());
             oreq.writeInt16(id_);
             oreq.writeInt8(kGroupReportType);
             oreq.writeInt8(recvd_);
@@ -75,7 +75,7 @@ void ReceiveGroupTask::handleReceivePacket(InRequest& ireq, const UdpEndpoint& /
                 bool passed = false;
                 dgram_->group_head_arrival_signal(ir, from_, &passed);
                 if (!passed) {
-                    OutRequest oreq(kInGroupType, Dgram::nextSequence());
+                    OutRequest oreq(kReceiveGroupType, Dgram::nextSequence());
                     oreq.writeInt16(id_);
                     oreq.writeInt8(kGroupReportType);
                     oreq.writeInt8(count_);
@@ -85,7 +85,7 @@ void ReceiveGroupTask::handleReceivePacket(InRequest& ireq, const UdpEndpoint& /
                 }
             }
             // notify first block ack
-            OutRequest oreq(kInGroupType, Dgram::nextSequence());
+            OutRequest oreq(kReceiveGroupType, Dgram::nextSequence());
             oreq.writeInt16(id_);
             oreq.writeInt8(kGroupBlockActType);
             dgram_->asyncSendTo(oreq, from_, 0);
@@ -107,7 +107,7 @@ void ReceiveGroupTask::handleReceivePacket(InRequest& ireq, const UdpEndpoint& /
             size_ += size;
             if (++recvd_ >= count_) {
                 // finished
-                OutRequest oreq(kInGroupType, Dgram::nextSequence());
+                OutRequest oreq(kReceiveGroupType, Dgram::nextSequence());
                 oreq.writeInt16(id_);
                 oreq.writeInt8(kGroupReportType);
                 oreq.writeInt8(recvd_);
@@ -119,7 +119,7 @@ void ReceiveGroupTask::handleReceivePacket(InRequest& ireq, const UdpEndpoint& /
         // last block
         if ((index == count_ - 1) && lostCount() > 0) {
             // Format: groupid | type | recvd count | block list
-            OutRequest oreq(kInGroupType, Dgram::nextSequence());
+            OutRequest oreq(kReceiveGroupType, Dgram::nextSequence());
             oreq.writeInt16(id_);
             oreq.writeInt8(kGroupReportType);
             oreq.writeInt8(recvd_);
