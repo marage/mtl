@@ -8,18 +8,19 @@ namespace mtl {
 namespace framework {
 namespace core {
 
-class ConnectTask : public Task {
+class ConnectTask final : public Task
+{
 public:
-  explicit ConnectTask(network::tcp::ClientPtr client,
-                       int timeout = 10000);
+    explicit ConnectTask(network::tcp::ClientPtr client,
+                         int timeout = 10000);
 
 protected:
-  State processImpl() override;
+    State processImpl() override;
 
 private:
-  network::tcp::ClientPtr client_;
-  std::chrono::system_clock::time_point previous_;
-  int timeout_;
+    network::tcp::ClientPtr client_;
+    std::chrono::system_clock::time_point previous_;
+    int timeout_;
 };
 
 } // core

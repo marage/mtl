@@ -11,8 +11,6 @@ CONFIG -= qt
 
 DEFINES += USE_BOOST_THREAD_LIB STD_COUT _WIN32_WINNT=0x0601
 
-INCLUDEPATH += $$PWD
-
 android {
     INCLUDEPATH += $$NDK_ROOT/sources/crystax/include \
                    $$NDK_ROOT/sources/boost/1.59.0/include
@@ -52,6 +50,7 @@ SOURCES += \
     mtl/framework/log/detail/impl/log.cpp \
     mtl/framework/core/detail/impl/connection_controller.cpp \
     mtl/framework/core/detail/impl/heart_beat_task.cpp \
+    mtl/framework/core/detail/impl/connect_task.cpp \
     mtl/utility/detail/impl/util.cpp \
     mtl/task/detail/impl/task.cpp \
     mtl/network/p2p/detail/impl/p2p_broadcast_task.cpp \
@@ -99,6 +98,7 @@ HEADERS += \
     mtl/framework/core/tcp_client.h \
     mtl/framework/core/tcp_server.h \
     mtl/framework/core/tcp_server_work.h \
+    mtl/framework/core/connect_task.h \
     mtl/framework/core/udp_server.h \
     mtl/network/p2p/detail/p2p_broadcast_task.hpp \
     mtl/network/p2p/protocol.hpp \

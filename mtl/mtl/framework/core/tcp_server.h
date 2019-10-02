@@ -1,7 +1,7 @@
-#ifndef MTL_FRAMEWORK_CORE_TCP_SERVER_H
+﻿#ifndef MTL_FRAMEWORK_CORE_TCP_SERVER_H
 #define MTL_FRAMEWORK_CORE_TCP_SERVER_H
 #include <boost/thread.hpp>
-#include "mtl/network/io_service_pool.hpp"
+#include "mtl/network/context_pool.hpp"
 #include "mtl/network/tcp/server.hpp"
 #include "tcp_server_work.h"
 
@@ -12,15 +12,15 @@ namespace core {
 template <typename ControllerFactory>
 class TcpServer : private boost::noncopyable
 {
-    typedef TCPServerWork<ControllerFactory> Work;
+    typedef TcpServerWork<ControllerFactory> Work;
 
 public:
     typedef TcpServer<ControllerFactory> This;
     typedef typename ControllerFactory::Controller Controller;
     typedef typename ControllerFactory::ControllerPtr ControllerPtr;
 
-    explicit TcpServer(network::ContextPool& cp,
-                       ControllerFactory* controller_factory);
+    TcpServer(network::ContextPool& cp,
+              ControllerFactory* controller_factory);
     ~TcpServer() {}
 
     bool open(const std::string& address, unsigned short port,
@@ -50,8 +50,9 @@ public:
         ControllerPtr c;
         for (const auto& w: works_) {
             c = w->getController(id);
-            if (c)
+            if (c) {
                 break;
+            }
         }
         return c;
     }
@@ -66,7 +67,7 @@ public:
         }
         return c;
     }
-    ControllerPtr GetIdleController(uint16_t main_cmd)
+    ControllerPtr getIdleController(uint16_t main_cmd)
     {
         ControllerPtr c;
         for (const auto& w: works_) {
@@ -77,7 +78,7 @@ public:
         }
         return c;
     }
-    void GetMainCommands(std::set<uint16_t>& cmds)
+    void getMainCommands(std::set<uint16_t>& cmds)
     {
         for (const auto& w: works_) {
             w->getMainCommands(cmds);

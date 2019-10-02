@@ -16,7 +16,7 @@ public:
     typedef boost::shared_ptr<T> UnitPtr;
     typedef typename T::Terminal Terminal;
 
-    UnitPtr CreateUnit(uint32_t id, Terminal t, int pt)
+    UnitPtr createUnit(uint32_t id, Terminal t, int pt)
     {
         return UnitPtr(new T(id, t, pt));
     }

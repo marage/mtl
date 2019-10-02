@@ -24,10 +24,10 @@
 #pragma warning(pop)
 #endif
 
-#define GET_MAIN_COMMAND(req) ((uint16_t)(((uint32_t)(req)) >> 16))
-#define GET_SUB_COMMAND(req) (((uint16_t)(req)) & 0x7FFF)
+#define GET_MAIN_COMMAND(req) (uint16_t((uint32_t(req)) >> 16))
+#define GET_SUB_COMMAND(req) ((uint16_t(req)) & 0x7FFF)
 #define GET_REQUEST_TYPE(main_cmd, sub_cmd) \
-  ((uint32_t)((uint16_t)(main_cmd) << 16) | (uint16_t)(sub_cmd))
+  (uint32_t(uint16_t(main_cmd) << 16) | uint16_t(sub_cmd))
 
 namespace mtl {
 namespace framework {

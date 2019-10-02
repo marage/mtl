@@ -1,11 +1,10 @@
-#include "mtl/network/p2p/client.hpp"
+﻿#include "mtl/network/p2p/client.hpp"
 #include <boost/asio/placeholders.hpp>
 #include <boost/asio/ip/address.hpp>
 #include "mtl/network/in_request.hpp"
 #include "mtl/network/udp/protocol.hpp"
 #include "mtl/network/p2p/protocol.hpp"
 #include "mtl/network/p2p/detail/p2p_broadcast_task.hpp"
-#include "mtl/utility/utility.hpp"
 
 namespace mtl {
 namespace network {

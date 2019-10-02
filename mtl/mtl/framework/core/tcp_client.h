@@ -109,7 +109,7 @@ void TcpClient<UnitFactory>::handleNewConnection(
                 }
                 w->onConnected();
                 works_.push_back(w);
-                boost::thread* t = new boost::thread(&Unit::Process, w);
+                boost::thread* t = new boost::thread(&Unit::process, w);
                 threads_.push_back(t);
             }
         } else {
@@ -118,14 +118,10 @@ void TcpClient<UnitFactory>::handleNewConnection(
             }
         }
         // log
-        auto lg = log::global_logger::get();
-        BOOST_LOG_FUNCTION()
-        BOOST_LOG_SEV(lg, log::kWarning) << work_count_ << "connected.";
+        MTL_LOG(log::kWarning) << work_count_ << "connected.";
     } else {
         // log
-        auto lg = log::global_logger::get();
-        BOOST_LOG_FUNCTION()
-        BOOST_LOG_SEV(lg, log::kWarning) << ec.message() << ec.value();
+        MTL_LOG(log::kWarning) << ec.message() << ec.value();
     }
 }
 

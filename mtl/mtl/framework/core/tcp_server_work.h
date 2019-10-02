@@ -10,7 +10,7 @@
 #include <boost/noncopyable.hpp>
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/shared_mutex.hpp>
-#include "mtl/utility/utility.hpp"
+#include "mtl/utility/util.hpp"
 #include "mtl/framework/log/log.h"
 #include "mtl/network/tcp/connection.hpp"
 #include "framework.h"
@@ -22,12 +22,12 @@ namespace core {
 typedef std::function<uint32_t()> ControllerIdGenerator;
 
 template <typename ControllerFactory>
-class TCPServerWork : private boost::noncopyable
+class TcpServerWork : private boost::noncopyable
 {
 public:
     typedef typename ControllerFactory::ControllerPtr ControllerPtr;
 
-    TCPServerWork(ControllerFactory* f, const ControllerIdGenerator& g)
+    TcpServerWork(ControllerFactory* f, const ControllerIdGenerator& g)
         : controller_factory_(f), id_generator_(g), running_(true)
     {
     }
@@ -97,7 +97,7 @@ public:
         typename ControllerMap::iterator it = controllers_.begin();
         typename ControllerMap::iterator end = controllers_.end();
         for (; it != end; ++it) {
-            cmds.insert(it->second->main_command());
+            cmds.insert(it->second->mainCommand());
         }
         mutex_.unlock();
     }
@@ -106,7 +106,7 @@ public:
 
     bool handleNewConnection(network::tcp::ConnectionPtr c)
     {
-        ControllerPtr cp(controller_factory_->CreateController(id_generator_(), c));
+        ControllerPtr cp(controller_factory_->createController(id_generator_(), c));
         new_mutex_.lock();
         new_controllers_.push_back(cp);
         new_mutex_.unlock();
@@ -128,7 +128,7 @@ private:
 };
 
 template <typename ControllerFactory>
-void TCPServerWork<ControllerFactory>::process()
+void TcpServerWork<ControllerFactory>::process()
 {
     typedef std::chrono::duration<int64_t, std::milli> MilliType;
     std::chrono::system_clock::time_point now;

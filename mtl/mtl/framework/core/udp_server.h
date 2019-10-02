@@ -1,4 +1,4 @@
-#ifndef MTL_FRAMEWORK_CORE_UDP_SERVER_H
+﻿#ifndef MTL_FRAMEWORK_CORE_UDP_SERVER_H
 #define MTL_FRAMEWORK_CORE_UDP_SERVER_H
 #include <boost/thread.hpp>
 #include <list>
@@ -26,8 +26,8 @@ public:
     bool open(const std::string& host, uint16_t port, size_t work_count = 1);
     void close();
 
-    void sendTo(const OutRequest& oreq, const UdpEndPoint& to,
-                int64_t timeout = 5000) {
+    void sendTo(const mtl::network::OutRequest& oreq, const mtl::network::UdpEndpoint& to,
+                uint32_t timeout = 5000) {
         dgram_->sendTo(oreq, to, timeout);
     }
 
@@ -35,24 +35,14 @@ protected:
     network::udp::Dgram& dgram() { return *dgram_; }
 
 private:
-    void handleArrival(network::InRequest& ireq, const UdpEndPoint& /*from*/,
-                       int32_t /*msecs*/) {
-        size_t idx = 0;
-        size_t min = 0xffffffff;
-        for (size_t i = 0; i < works_.size(); ++i) {
-            if (works_.at(i)->requestCount() < min) {
-                min = works_.at(i)->requestCount();
-                idx = i;
-            }
-        }
-        works_[idx]->pushRequest(ireq);
-    }
+    void handleArrival(mtl::network::InRequest& ireq, const mtl::network::UdpEndpoint& /*from*/,
+                       int32_t /*msecs*/);
 
     typedef typename UnitFactory::Unit Unit;
     typedef typename UnitFactory::UnitPtr UnitPtr;
 
     UnitFactory* unit_factory_;
-    network::udp::DgramPtr dgram_;
+    mtl::network::udp::DgramPtr dgram_;
     std::vector<boost::thread*> threads_;
     typename std::vector<UnitPtr> works_;
 };
@@ -64,7 +54,7 @@ bool UdpServer<UnitFactory>::open(const std::string& host, uint16_t port,
     static uint32_t id = 0;
 
     boost::asio::ip::address addr = boost::asio::ip::address::from_string(host);
-    if (!dgram_->open(UdpEndPoint(addr, port))) {
+    if (!dgram_->open(UdpEndpoint(addr, port))) {
         return false;
     }
 
@@ -103,6 +93,20 @@ void UdpServer<UnitFactory>::close()
     threads_.clear();
     // delete works
     works_.clear();
+}
+
+template <typename UnitFactory>
+void UdpServer<UnitFactory>::handleArrival(network::InRequest& ireq, const network::UdpEndpoint& /*from*/,
+                                           int32_t /*msecs*/) {
+    size_t idx = 0;
+    size_t min = 0xffffffff;
+    for (size_t i = 0; i < works_.size(); ++i) {
+        if (works_.at(i)->requestCount() < min) {
+            min = works_.at(i)->requestCount();
+            idx = i;
+        }
+    }
+    works_[idx]->pushRequest(ireq);
 }
 
 } // core

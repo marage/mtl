@@ -5,7 +5,6 @@
 #include "mtl/network/udp/protocol.hpp"
 #include "mtl/network/out_request.hpp"
 #include "mtl/network/in_request.hpp"
-#include "mtl/utility/utility.hpp"
 
 namespace mtl {
 namespace network {

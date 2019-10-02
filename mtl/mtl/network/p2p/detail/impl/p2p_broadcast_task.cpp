@@ -4,7 +4,6 @@
 #include "mtl/network/p2p/protocol.hpp"
 #include "mtl/network/in_request.hpp"
 #include "mtl/network/udp/dgram.hpp"
-#include "mtl/utility/utility.hpp"
 
 namespace mtl {
 namespace network {

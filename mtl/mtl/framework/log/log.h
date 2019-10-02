@@ -1,4 +1,4 @@
-#ifndef MTL_FRAMEWORK_LOG_H
+﻿#ifndef MTL_FRAMEWORK_LOG_H
 #define MTL_FRAMEWORK_LOG_H
 #include <boost/log/common.hpp>
 #include <boost/log/trivial.hpp>
@@ -52,5 +52,10 @@ inline std::basic_ostream<CharT, TraitsT>& operator<<(
     }
     return strm;
 }
+
+#define MTL_LOG(level) \
+    auto log = mtl::framework::log::global_logger::get(); \
+    BOOST_LOG_FUNCTION() \
+    BOOST_LOG_SEV(log, level)
 
 #endif // MTL_FRAMEWORK_LOG_H
